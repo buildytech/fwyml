@@ -62,16 +62,18 @@ candidates:
     - capability: workspace@0
       classification: existing-fw-contract
       observation: relative paths and revision-checked writes are UI-safe
-    - capability: presentation-backend
-      classification: deferred
-      reason: a generic FW contract needs evidence from at least two products
+    - capability: desktop-presentation@0
+      classification: draft-fw-contract
+      observation: frontend-safe presentation DTOs, transport-neutral routing,
+        classified errors, and selected-workspace session coordination
+      promotionGate: requires conformance evidence from a second desktop product
   registryRecords:
     - id: host-wails3-go
       classification: existing-adapter-record
       action: reverify after extraction
   conformanceScenarios:
-    - id: desktop-bff-transport-neutral
-      classification: product-conformance-candidate
+    - id: desktop-presentation-boundary
+      classification: draft-fw-conformance
       observation: presentation BFF dependency closure excludes Wails
   validators:
     - id: wails-bindings
@@ -91,13 +93,17 @@ candidates:
     - product-specific branches in fwyml
 
 impact:
-  contractVersion: none
+  contractVersion: desktop-presentation@0 (draft)
   fw:
-    - no new FW contract before a second product proves the boundary
+    - publish desktop-presentation@0 as draft only
+    - retain draft status until a second desktop product passes the same scenario
   registry:
+    - add a real desktop-presentation adapter record only after extracting its
+      source and generated transport boundary
     - reverify extracted Wails host and IDE presentation slice records
   fwyml:
     - materialize generated transport facade only from registry-declared outputs
+    - reject absent artifact sources instead of creating placeholder files
   migrations:
     - replace runtime feature profiles with statically selected composition
 
@@ -129,12 +135,19 @@ provenance:
   publicSurfaceDigests: {}
   artifactIntegrity: {}
   conformanceResults:
-    - internal/app dependency closure has no Wails package after initial injection extraction
+    - internal/desktop dependency closure has no Wails package
+    - wails3 task verify passed on 2026-09-17
 
 decision:
   status: active
   blockers:
-    - no second completed product yet proves a generic presentation backend contract
+    - no second completed product yet proves desktop-presentation@0
+    - VSA records point to draft artifacts that are not feature-equivalent to
+      IDE BuildY source packages or UI slices
+    - desktop-presentation has no extracted adapter record
+    - agent-runtime-cursor-node is blocked, so agent manifests cannot promote
+    - generated Templ and Svelte source artifacts require their own verified
+      source and generator output contract
   nonGoals:
     - rewriting the product UI during boundary extraction
     - hidden runtime capability flags in generated products

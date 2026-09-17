@@ -11,6 +11,7 @@ records:
     source:
       kind: npm
       package: "@ui8kit/codegen"
+      ref: "0.1.0"
     command:
       argv: ["npx", "@ui8kit/codegen", "generate", "--runtime", "${runtime}"]
       phase: generate
@@ -37,6 +38,7 @@ records:
     source:
       kind: npm
       package: "@ui8kit/retag"
+      ref: "0.0.0-draft"
     command:
       argv: ["npx", "@ui8kit/retag", "validate"]
       exit: "zero-on-success"

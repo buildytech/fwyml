@@ -253,6 +253,70 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "required": ["source"],
+            "properties": {
+              "source": {
+                "required": ["kind"],
+                "properties": { "kind": { "const": "npm" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "source": { "required": ["package", "ref"] }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["source"],
+            "properties": {
+              "source": {
+                "required": ["kind"],
+                "properties": { "kind": { "const": "go-module" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "source": { "required": ["module", "ref"] }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["source"],
+            "properties": {
+              "source": {
+                "required": ["kind"],
+                "properties": { "kind": { "const": "git" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "source": { "required": ["repository", "commit"] }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["source"],
+            "properties": {
+              "source": {
+                "required": ["kind"],
+                "properties": { "kind": { "enum": ["local", "generated", "files"] } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "source": { "required": ["path"] }
+            }
+          }
         }
       ]
     }

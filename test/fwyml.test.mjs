@@ -1,16 +1,18 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { parse } from "yaml";
 import { classifyDrift } from "../dist/drift.js";
+import { assertRegistry } from "../dist/schema.js";
 import { runSelectedTools } from "../dist/tools.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const cli = join(root, "dist", "cli.js");
+const stageVSA = join(root, "scripts", "stage-vsa.mjs");
 const manifests = join(root, ".project", ".vsa-ide", "manifests");
 
 function run(args, env = {}) {
@@ -19,6 +21,59 @@ function run(args, env = {}) {
     cwd: root,
     env: { ...process.env, ...env },
   });
+}
+
+function isolatedSnapshotRegistry() {
+  const dir = mkdtempSync(join(tmpdir(), "fwyml-snapshot-"));
+  const registryDir = join(dir, "registry");
+  cpSync(join(root, "registry", "snapshot"), registryDir, { recursive: true });
+  const registry = join(registryDir, "records.yaml");
+  const snapshot = parse(readFileSync(registry, "utf8"));
+  for (const record of snapshot.records ?? []) {
+    if (record.ownedFiles?.length) {
+      record.source = { ...record.source, path: join(dir, "unextracted", record.id) };
+    }
+  }
+  writeFileSync(registry, JSON.stringify(snapshot));
+  return { dir, registry };
+}
+
+function materializableSliceFixture() {
+  const dir = mkdtempSync(join(tmpdir(), "fwyml-slice-"));
+  const artifact = join(dir, "artifact", "files", "slices");
+  mkdirSync(artifact, { recursive: true });
+  writeFileSync(join(artifact, "surface.txt"), "fixture surface\n");
+
+  const registry = join(dir, "registry.yaml");
+  const manifest = join(dir, "fw.yaml");
+  writeFileSync(registry, `schemaVersion: fw.buildy.tech/registry/v0alpha1
+kind: Registry
+records:
+  - id: surface
+    kind: capability
+    version: "1"
+  - id: surface-adapter
+    kind: adapter
+    version: "1"
+    provides: [surface]
+  - id: surface-slice
+    kind: vertical-slice
+    version: "1"
+    source:
+      kind: files
+      path: artifact
+    ownedFiles: [slices/surface.txt]
+`);
+  writeFileSync(manifest, `schemaVersion: fw.buildy.tech/v0alpha1
+kind: Product
+metadata:
+  name: slice-fixture
+composition:
+  capabilities:
+    surface: { use: surface-adapter }
+  slices: [surface-slice]
+`);
+  return { dir, registry, manifest };
 }
 
 test("version works without adapters", () => {
@@ -34,30 +89,71 @@ test("three manifests validate against the generic schema", () => {
   }
 });
 
-test("resolve keeps unselected capabilities absent", () => {
+test("bundled capability records reference a published port specification", () => {
+  const records = parse(readFileSync(join(root, "registry", "snapshot", "records.yaml"), "utf8"));
+  for (const record of records.records ?? []) {
+    if (record.kind !== "capability" || !record.contract) {
+      continue;
+    }
+    assert.equal(
+      existsSync(join(root, "registry", "snapshot", "specs", `${record.contract}.yaml`)),
+      true,
+      `${record.id} requires ${record.contract}`,
+    );
+  }
+});
+
+test("registry sources require immutable identifiers for their declared kind", () => {
+  assert.throws(
+    () => assertRegistry({
+      schemaVersion: "fw.buildy.tech/registry/v0alpha1",
+      kind: "Registry",
+      records: [{
+        id: "unversioned-package",
+        kind: "adapter",
+        version: "1",
+        source: { kind: "npm", package: "example-package" },
+      }],
+    }),
+    /ref/,
+  );
+});
+
+test("VSA staging copies registry metadata without fabricating artifacts", () => {
+  const dir = mkdtempSync(join(tmpdir(), "fwyml-stage-"));
+  const result = spawnSync(process.execPath, [stageVSA], {
+    cwd: root,
+    encoding: "utf8",
+    env: { ...process.env, FWYML_VSA_STAGING: dir },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(existsSync(join(dir, "registry", "index.yaml")), true);
+  assert.equal(existsSync(join(dir, "artifacts")), false);
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test("unextracted VSA selections retain absence data and block materialization", () => {
   const cases = [
     {
       file: "workshop-templ.yaml",
       absent: ["agent"],
       present: ["browse", "workspace"],
-      missingFiles: ["src/App.svelte", "src/App.solid.tsx", "src/surfaces/Editor.svelte"],
     },
     {
       file: "workshop-svelte-agent.yaml",
       absent: ["browse"],
       present: ["agent", "editor"],
-      missingFiles: ["views/app.templ", "src/App.solid.tsx"],
     },
     {
       file: "assistant-solid-browser.yaml",
       absent: ["workspace", "editor", "explorer", "vcs"],
       present: ["browse", "agent"],
-      missingFiles: ["views/app.templ", "src/App.svelte", "src/surfaces/Chat.svelte"],
     },
   ];
   for (const item of cases) {
-    const resolved = run(["--json", "resolve", "--manifest", join(manifests, item.file)]);
-    assert.equal(resolved.status, 0, resolved.stderr);
+    const snapshot = isolatedSnapshotRegistry();
+    const resolved = run(["--json", "resolve", "--manifest", join(manifests, item.file), "--registry", snapshot.registry]);
+    assert.equal(resolved.status, 1, resolved.stderr);
     const body = JSON.parse(resolved.stdout);
     for (const id of item.absent) {
       assert.ok(body.resolution.absent.includes(id), `${item.file} missing absent ${id}`);
@@ -66,31 +162,8 @@ test("resolve keeps unselected capabilities absent", () => {
     for (const id of item.present) {
       assert.ok(body.resolution.nodes.some((node) => (node.record.provides ?? []).includes(id)), `${item.file} missing ${id}`);
     }
-    const dir = mkdtempSync(join(tmpdir(), "fwyml-"));
-    const synced = run(["--json", "sync", "--manifest", join(manifests, item.file), "--out", dir]);
-    assert.equal(synced.status, 0, synced.stderr);
-    const tree = readFileSync(join(dir, "fw.lock.yaml"), "utf8");
-    const identity = readFileSync(join(dir, "compose", "identity.go"), "utf8");
-    assert.match(identity, /ProductName/);
-    assert.equal(existsSync(join(dir, "go.sum")), true);
-    assert.equal(existsSync(join(dir, "fw.yaml")), true);
-    for (const missing of item.missingFiles) {
-      assert.equal(tree.includes(missing), false, `${item.file} lock should not own ${missing}`);
-      assert.equal(existsSync(join(dir, missing)), false, `${item.file} must not write ${missing}`);
-    }
-    const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
-    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-    for (const id of item.absent) {
-      assert.equal(Object.keys(deps).some((name) => name.includes(id)), false, `${item.file} dep ${id}`);
-    }
-    const strict = run(["--json", "verify", "--strict", "--manifest", join(manifests, item.file), "--out", dir]);
-    assert.equal(strict.status, 2, `${item.file} strict`);
-    const report = JSON.parse(strict.stdout);
-    assert.ok(report.diagnostics.some((row) => row.code === "FWYML_UNVERIFIED_ARTIFACT"));
-    if (item.present.includes("agent")) {
-      assert.ok(report.diagnostics.some((row) => row.id === "agent-runtime-cursor-node" && row.message.includes("blocked")));
-    }
-    rmSync(dir, { recursive: true, force: true });
+    assert.ok(body.resolution.diagnostics.some((row) => row.code === "FWYML_SOURCE_MISSING"));
+    rmSync(snapshot.dir, { recursive: true, force: true });
   }
 });
 
@@ -303,51 +376,51 @@ test("registered tool preparation runs before the declared command", () => {
 });
 
 test("verify refuses a persisted lock that no longer matches resolution", () => {
-  const dir = mkdtempSync(join(tmpdir(), "fwyml-lock-"));
-  const manifest = join(manifests, "workshop-templ.yaml");
-  const synced = run(["sync", "--manifest", manifest, "--out", dir]);
+  const fixture = materializableSliceFixture();
+  const out = join(fixture.dir, "product");
+  const synced = run(["sync", "--manifest", fixture.manifest, "--registry", fixture.registry, "--out", out]);
   assert.equal(synced.status, 0, synced.stderr);
-  const lock = join(dir, "fw.lock.yaml");
+  const lock = join(out, "fw.lock.yaml");
   writeFileSync(lock, readFileSync(lock, "utf8").replace(/registryDigest: .*/, "registryDigest: sha256:stale"));
-  const verified = run(["--json", "verify", "--strict", "--manifest", manifest, "--out", dir]);
+  const verified = run(["--json", "verify", "--strict", "--manifest", fixture.manifest, "--registry", fixture.registry, "--out", out]);
   assert.equal(verified.status, 2, verified.stderr);
   const report = JSON.parse(verified.stdout);
   assert.ok(report.diagnostics.some((row) => row.code === "FWYML_LOCK_MISMATCH"));
   assert.deepEqual(report.runs, []);
-  rmSync(dir, { recursive: true, force: true });
+  rmSync(fixture.dir, { recursive: true, force: true });
 });
 
 test("verify detects a changed selected output from persisted ownership digests", () => {
-  const dir = mkdtempSync(join(tmpdir(), "fwyml-output-lock-"));
-  const manifest = join(manifests, "workshop-templ.yaml");
-  assert.equal(run(["sync", "--manifest", manifest, "--out", dir]).status, 0);
-  const output = join(dir, "slices", "editor-surface-templ.txt");
+  const fixture = materializableSliceFixture();
+  const out = join(fixture.dir, "product");
+  assert.equal(run(["sync", "--manifest", fixture.manifest, "--registry", fixture.registry, "--out", out]).status, 0);
+  const output = join(out, "slices", "surface.txt");
   writeFileSync(output, `${readFileSync(output, "utf8")}user change\n`);
-  const verified = run(["--json", "verify", "--manifest", manifest, "--out", dir]);
+  const verified = run(["--json", "verify", "--manifest", fixture.manifest, "--registry", fixture.registry, "--out", out]);
   assert.equal(verified.status, 2, verified.stderr);
-  assert.ok(JSON.parse(verified.stdout).diagnostics.some((row) => row.code === "FWYML_LOCK_MISMATCH" && row.id === "slices/editor-surface-templ.txt"));
-  rmSync(dir, { recursive: true, force: true });
+  assert.ok(JSON.parse(verified.stdout).diagnostics.some((row) => row.code === "FWYML_LOCK_MISMATCH" && row.id === "slices/surface.txt"));
+  rmSync(fixture.dir, { recursive: true, force: true });
 });
 
 test("sync removes unchanged stale outputs and protects modified outputs", () => {
-  const dir = mkdtempSync(join(tmpdir(), "fwyml-removal-"));
-  const manifest = join(manifests, "workshop-templ.yaml");
-  const changedManifest = join(dir, "reduced.yaml");
-  const source = parse(readFileSync(manifest, "utf8"));
-  source.composition.slices = source.composition.slices.filter((id) => id !== "editor-surface-templ");
+  const fixture = materializableSliceFixture();
+  const out = join(fixture.dir, "product");
+  const changedManifest = join(fixture.dir, "reduced.yaml");
+  const source = parse(readFileSync(fixture.manifest, "utf8"));
+  source.composition.slices = source.composition.slices.filter((id) => id !== "surface-slice");
   writeFileSync(changedManifest, JSON.stringify(source));
 
-  assert.equal(run(["sync", "--manifest", manifest, "--out", dir]).status, 0);
-  assert.equal(existsSync(join(dir, "slices", "editor-surface-templ.txt")), true);
-  const removed = run(["sync", "--manifest", changedManifest, "--out", dir]);
+  assert.equal(run(["sync", "--manifest", fixture.manifest, "--registry", fixture.registry, "--out", out]).status, 0);
+  assert.equal(existsSync(join(out, "slices", "surface.txt")), true);
+  const removed = run(["sync", "--manifest", changedManifest, "--registry", fixture.registry, "--out", out]);
   assert.equal(removed.status, 0, removed.stderr);
-  assert.equal(existsSync(join(dir, "slices", "editor-surface-templ.txt")), false);
+  assert.equal(existsSync(join(out, "slices", "surface.txt")), false);
 
-  assert.equal(run(["sync", "--manifest", manifest, "--out", dir]).status, 0);
-  const stale = join(dir, "slices", "editor-surface-templ.txt");
+  assert.equal(run(["sync", "--manifest", fixture.manifest, "--registry", fixture.registry, "--out", out]).status, 0);
+  const stale = join(out, "slices", "surface.txt");
   writeFileSync(stale, `${readFileSync(stale, "utf8")}user change\n`);
-  const protectedSync = run(["sync", "--manifest", changedManifest, "--out", dir]);
+  const protectedSync = run(["sync", "--manifest", changedManifest, "--registry", fixture.registry, "--out", out]);
   assert.equal(protectedSync.status, 3, protectedSync.stderr);
   assert.equal(existsSync(stale), true);
-  rmSync(dir, { recursive: true, force: true });
+  rmSync(fixture.dir, { recursive: true, force: true });
 });

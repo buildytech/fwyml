@@ -10,6 +10,12 @@ records:
     contract: host@0
     readiness: draft
     conformanceRefs: [host-lifecycle]
+  - id: desktop-presentation
+    kind: capability
+    version: "0"
+    contract: desktop-presentation@0
+    readiness: draft
+    conformanceRefs: [desktop-presentation-boundary]
   - id: ui
     kind: capability
     version: "0"
@@ -63,11 +69,13 @@ records:
     version: "0"
     contract: languages@0
     readiness: draft
+    conformanceRefs: [language-document-operations]
   - id: terminal
     kind: capability
     version: "0"
     contract: terminal@0
     readiness: draft
+    conformanceRefs: [terminal-session-lifecycle]
   - id: templ
     kind: capability
     version: "0"
@@ -307,6 +315,7 @@ records:
     source:
       kind: npm
       package: "@ui8kit/editory-svelte"
+      ref: "0.0.0-draft"
       path: ../artifacts/editor-editory-svelte
       portable: false
     ownedFiles:

@@ -1,0 +1,27 @@
+id: terminal
+contract: terminal@0
+kind: capability
+obligations:
+  dtos:
+    - terminal session identity
+    - supported terminal environment descriptor
+    - incremental output payload
+    - completion state
+  operations:
+    - list supported terminal environments
+    - start, read, write to, resize, and close a session
+  events:
+    - session started
+    - session completed or closed
+  invariants:
+    - a session is scoped to the selected workspace
+    - closed sessions reject input and resize
+    - a workspace change disposes its terminal sessions
+    - dimensions are bounded before an adapter creates a session
+  nonObligations:
+    - does not require a shell, PTY library, or operating system
+    - does not prescribe output encoding
+    - does not include agent command execution
+  conformance:
+    - terminal-session-lifecycle
+readiness: draft

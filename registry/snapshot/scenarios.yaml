@@ -6,6 +6,12 @@ cases:
       - process start and stop
       - one native window
       - no orphan selected sidecars
+  - id: desktop-presentation-boundary
+    observes:
+      - command, query, event, and error values are transport-safe DTOs
+      - host paths, secrets, process handles, and vendor client types are absent
+      - equivalent transport calls preserve command and query semantics
+      - presentation errors are classified before serialization
   - id: selected-ui-runtime
     observes:
       - exactly one UI runtime is present
@@ -23,6 +29,18 @@ cases:
     observes:
       - isolated storage
       - view disposal
+  - id: terminal-session-lifecycle
+    observes:
+      - session scope is the selected workspace
+      - dimensions are rejected outside declared bounds
+      - closed sessions reject additional input
+      - changing workspace disposes active sessions
+  - id: language-document-operations
+    observes:
+      - unavailable support is explicit
+      - paths remain workspace-relative
+      - format returns a proposed document value without writing it
+      - locations and diagnostics remain document-relative
   - id: portable-delivery
     observes:
       - reproducible on-disk layout

@@ -3,6 +3,7 @@ import { isAbsolute, join, resolve } from "node:path";
 import type { Diagnostic, Manifest, MaterializePlan, RegistryRecord, Resolution, ResolvedNode } from "./types.js";
 import { semanticDigest } from "./io.js";
 import { findRecord, type LoadedRegistry } from "./registry.js";
+import { gitArtifactRoot } from "./sources.js";
 
 function sourceRef(record: RegistryRecord): string {
   const src = record.source;
@@ -13,7 +14,13 @@ function sourceRef(record: RegistryRecord): string {
   return src.commit ? `${identity}@${src.commit}` : `${identity}@${src.ref ?? record.version}`;
 }
 
-function artifactRoot(record: RegistryRecord, roots: string[]): string | undefined {
+function artifactRoot(record: RegistryRecord, roots: string[], sourceCache?: string): string | undefined {
+  if (sourceCache) {
+    const cached = gitArtifactRoot(record, sourceCache);
+    if (cached) {
+      return cached;
+    }
+  }
   const path = record.source?.path;
   if (!path) {
     return undefined;
@@ -116,7 +123,7 @@ function selectedTerms(nodes: ResolvedNode[]): Set<string> {
   return terms;
 }
 
-export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry): Resolution {
+export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry, sourceCache?: string): Resolution {
   const diagnostics: Diagnostic[] = [];
   const nodes: ResolvedNode[] = [];
   const selected = new Set<string>();
@@ -274,7 +281,7 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry): Resolu
   const known = [...loaded.records.values()].filter((record) => record.kind === "capability").map((record) => record.id);
   const absent = known.filter((id) => !providers.has(id) && !manifest.composition.capabilities[id]);
 
-  const plan = buildPlan(nodes, loaded.roots, diagnostics);
+  const plan = buildPlan(nodes, loaded.roots, diagnostics, sourceCache);
   return {
     product: manifest.metadata.name,
     nodes,
@@ -284,7 +291,7 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry): Resolu
   };
 }
 
-function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnostic[]): MaterializePlan {
+function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnostic[], sourceCache?: string): MaterializePlan {
   const files: MaterializePlan["files"] = [];
   const npm: Record<string, string> = {};
   const npmDev: Record<string, string> = {};
@@ -315,7 +322,7 @@ function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnost
   };
 
   for (const { record } of nodes) {
-    const root = artifactRoot(record, roots);
+    const root = artifactRoot(record, roots, sourceCache);
     if (record.source?.kind === "local") {
       local = true;
     }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { contextPack } from "./context.js";
 import { EXIT_FAIL, EXIT_LOCK, EXIT_OK, EXIT_USAGE, EXIT_VERIFY } from "./exit.js";
 import { readYaml, writeYaml } from "./io.js";
@@ -8,6 +8,7 @@ import { materialize } from "./materialize.js";
 import { loadRegistries, RegistryError } from "./registry.js";
 import { hasError, resolveGraph, toLock } from "./resolve.js";
 import { assertLock, assertManifest, validateManifest } from "./schema.js";
+import { fetchGitSources } from "./sources.js";
 import type { LockFile, Manifest } from "./types.js";
 import { runSelectedTools } from "./tools.js";
 import { verifyPersistedLock, verifyTree } from "./verify.js";
@@ -20,6 +21,7 @@ type Flags = {
   manifest?: string;
   registry?: string;
   out?: string;
+  cache?: string;
 };
 
 function parseArgs(argv: string[]): { command?: string; flags: Flags } {
@@ -57,6 +59,10 @@ function parseArgs(argv: string[]): { command?: string; flags: Flags } {
       flags.out = argv[++i];
       continue;
     }
+    if (arg === "--cache") {
+      flags.cache = argv[++i];
+      continue;
+    }
     if (!arg.startsWith("-") && !command) {
       command = arg;
       continue;
@@ -72,6 +78,7 @@ function usage(): string {
 Commands:
   validate [--manifest fw.yaml]
   resolve  [--manifest fw.yaml] [--registry <path>]
+  fetch   [--manifest fw.yaml] [--registry <path>] [--cache <dir>]
   sync     [--dry-run] [--out <dir>]
   verify   [--strict] [--out <dir>]
   generate [--out <dir>]
@@ -93,6 +100,10 @@ function locateManifest(flags: Flags): string {
   return path;
 }
 
+function sourceCache(flags: Flags): string {
+  return resolve(flags.cache ?? join(flags.out ?? ".", ".fwyml", "sources"));
+}
+
 function compile(flags: Flags) {
   const manifestPath = locateManifest(flags);
   const manifest = loadManifest(manifestPath);
@@ -100,7 +111,7 @@ function compile(flags: Flags) {
     manifestSources: manifest.registries,
     cliRegistry: flags.registry,
   });
-  const resolution = resolveGraph(manifest, loaded);
+  const resolution = resolveGraph(manifest, loaded, sourceCache(flags));
   const lock = toLock(resolution, manifest, loaded.snapshotId, loaded.snapshotDigest);
   return { manifest, resolution, lock };
 }
@@ -180,6 +191,17 @@ function main(): number {
       }
       emit(flags, payload, `synced ${outDir}\n`);
       return EXIT_OK;
+    }
+
+    if (command === "fetch") {
+      const diagnostics = fetchGitSources(compiled.resolution, sourceCache(flags));
+      const errors = diagnostics.filter((item) => item.severity === "error");
+      emit(
+        flags,
+        { diagnostics, ok: errors.length === 0 },
+        errors.length === 0 ? `fetched ${sourceCache(flags)}\n` : `${errors.map((item) => item.code).join("\n")}\n`,
+      );
+      return errors.length === 0 ? EXIT_OK : EXIT_FAIL;
     }
 
     if (command === "generate") {
