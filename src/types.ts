@@ -70,6 +70,7 @@ export type RegistryRecord = {
   npm?: {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
   };
   go?: { module?: string; require?: string; replace?: string };
   notes?: string;
@@ -100,6 +101,7 @@ export type MaterializePlan = {
   files: { dest: string; from: string; owner: string }[];
   npm: Record<string, string>;
   npmDev: Record<string, string>;
+  scripts: Record<string, string>;
   go: { module?: string; require: Record<string, string>; replace: Record<string, string> };
   tools: { id: string; argv: string[]; phase?: string; outputs?: string[] }[];
   guidance: { dest: string; from: string; owner: string }[];

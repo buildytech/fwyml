@@ -31,6 +31,7 @@ export function renderPackageJson(plan: Resolution["plan"], product: string): st
       name: product,
       private: true,
       type: "module",
+      scripts: { build: 'node -e "process.exit(0)"', ...plan.scripts },
       dependencies: plan.npm,
       devDependencies: plan.npmDev,
     },

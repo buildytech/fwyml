@@ -231,11 +231,23 @@ records:
       runtimes: [svelte]
     ownedFiles:
       - ui/runtime.txt
-      - frontend/dist/index.html
-      - frontend/src/App.svelte
+      - index.html
+      - vite.config.ts
+      - svelte.config.js
+      - tsconfig.json
+      - src/main.ts
+      - src/app.css
     npm:
       dependencies:
-        svelte: "5.0.0"
+        svelte: "5.19.10"
+        "@wailsio/runtime": "3.0.0-beta.19"
+      devDependencies:
+        vite: "6.3.1"
+        "@sveltejs/vite-plugin-svelte": "5.0.3"
+        typescript: "5.7.3"
+      scripts:
+        dev: vite
+        build: vite build
     integrity:
       publicDigest: sha256:draft-ui-svelte
     conformanceRefs: [selected-ui-runtime]
@@ -298,9 +310,7 @@ records:
     ownedFiles:
       - editor/surface.txt
       - compose/editor.go
-    npm:
-      dependencies:
-        "@ui8kit/editory-svelte": "0.0.0-draft"
+    notes: EditorY Svelte is the intended host. Until a verified package is pinned, the surface uses the editor@0 buffer.
     integrity:
       publicDigest: sha256:draft-editory
     conformanceRefs: [editor-document-lifetime]
@@ -389,8 +399,9 @@ records:
       portable: false
     ownedFiles:
       - slices/workshop-shell.txt
+      - src/App.svelte
     removal:
-      ownedFiles: [slices/workshop-shell.txt]
+      ownedFiles: [slices/workshop-shell.txt, src/App.svelte]
     integrity:
       publicDigest: sha256:draft-workshop-shell
 
@@ -407,8 +418,11 @@ records:
       portable: false
     ownedFiles:
       - slices/editor-surface.txt
+      - src/surfaces/Editor.svelte
     removal:
-      ownedFiles: [slices/editor-surface.txt]
+      ownedFiles:
+        - slices/editor-surface.txt
+        - src/surfaces/Editor.svelte
     integrity:
       publicDigest: sha256:draft-editor-surface
 
@@ -424,8 +438,11 @@ records:
       portable: false
     ownedFiles:
       - slices/explorer-surface.txt
+      - src/surfaces/Explorer.svelte
     removal:
-      ownedFiles: [slices/explorer-surface.txt]
+      ownedFiles:
+        - slices/explorer-surface.txt
+        - src/surfaces/Explorer.svelte
     integrity:
       publicDigest: sha256:draft-explorer-surface
 
@@ -459,8 +476,11 @@ records:
       portable: false
     ownedFiles:
       - slices/agent-chat-surface.txt
+      - src/surfaces/Chat.svelte
     removal:
-      ownedFiles: [slices/agent-chat-surface.txt]
+      ownedFiles:
+        - slices/agent-chat-surface.txt
+        - src/surfaces/Chat.svelte
     integrity:
       publicDigest: sha256:draft-agent-chat
 

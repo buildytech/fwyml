@@ -190,6 +190,7 @@ function buildPlan(nodes: ResolvedNode[], roots: string[]): MaterializePlan {
   const files: MaterializePlan["files"] = [];
   const npm: Record<string, string> = {};
   const npmDev: Record<string, string> = {};
+  const scripts: Record<string, string> = {};
   const goRequire: Record<string, string> = {};
   const goReplace: Record<string, string> = {};
   let goModule: string | undefined;
@@ -211,6 +212,7 @@ function buildPlan(nodes: ResolvedNode[], roots: string[]): MaterializePlan {
     }
     Object.assign(npm, record.npm?.dependencies ?? {});
     Object.assign(npmDev, record.npm?.devDependencies ?? {});
+    Object.assign(scripts, record.npm?.scripts ?? {});
     if (record.kind === "product-template" && record.go?.module) {
       goModule = record.go.module;
     } else if (record.go?.module && record.go.require) {
@@ -231,6 +233,7 @@ function buildPlan(nodes: ResolvedNode[], roots: string[]): MaterializePlan {
     files,
     npm,
     npmDev,
+    scripts,
     go: { module: goModule, require: goRequire, replace: goReplace },
     tools,
     guidance,

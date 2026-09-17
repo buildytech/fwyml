@@ -18,9 +18,25 @@ type WorkspaceService struct {
 	root workspace.Root
 }
 
+var attachedWorkspace *WorkspaceService
+
+func AttachedRoot() (workspace.Root, error) {
+	if attachedWorkspace == nil {
+		return workspace.Root{}, errNoWorkspace
+	}
+	attachedWorkspace.mu.Lock()
+	defer attachedWorkspace.mu.Unlock()
+	if attachedWorkspace.root.Empty() {
+		return workspace.Root{}, errNoWorkspace
+	}
+	return attachedWorkspace.root, nil
+}
+
 func init() {
+	service := &WorkspaceService{}
+	attachedWorkspace = service
 	Attach(func(app *application.App) {
-		app.RegisterService(application.NewService(&WorkspaceService{}))
+		app.RegisterService(application.NewService(service))
 	})
 }
 
@@ -42,6 +58,16 @@ func (service *WorkspaceService) OpenWorkspace(path string) (WorkspaceSnapshot, 
 	service.root = root
 	service.mu.Unlock()
 	return service.Workspace(), nil
+}
+
+func (service *WorkspaceService) ReadFile(rel string) (workspace.FileBody, error) {
+	service.mu.Lock()
+	root := service.root
+	service.mu.Unlock()
+	if root.Empty() {
+		return workspace.FileBody{}, errNoWorkspace
+	}
+	return workspace.ReadText(root.Abs, rel)
 }
 
 func (service *WorkspaceService) WriteFile(rel, text, revision string) (workspace.WriteResult, error) {

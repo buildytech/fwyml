@@ -15,15 +15,16 @@ func init() {
 	})
 }
 
-func (service *VCSService) Status(root string) (string, error) {
-	if root == "" {
-		return "", errString("no-workspace: no workspace folder")
+func (service *VCSService) Status() (string, error) {
+	root, err := AttachedRoot()
+	if err != nil {
+		return "", err
 	}
 	cmd := exec.Command("git", "status", "--porcelain")
-	cmd.Dir = root
+	cmd.Dir = root.Abs
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", errString("vcs-remote: " + strings.TrimSpace(string(out)+" "+err.Error()))
+		return "", errString("vcs: " + strings.TrimSpace(string(out)+" "+err.Error()))
 	}
 	return string(out), nil
 }

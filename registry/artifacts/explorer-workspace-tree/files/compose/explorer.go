@@ -2,7 +2,6 @@ package compose
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -21,12 +20,12 @@ func init() {
 	})
 }
 
-func (service *ExplorerService) Tree(root string) ([]TreeNode, error) {
-	opened, err := workspaceOpen(root)
+func (service *ExplorerService) Tree() ([]TreeNode, error) {
+	root, err := AttachedRoot()
 	if err != nil {
 		return nil, err
 	}
-	entries, err := os.ReadDir(opened)
+	entries, err := os.ReadDir(root.Abs)
 	if err != nil {
 		return nil, err
 	}
@@ -35,11 +34,4 @@ func (service *ExplorerService) Tree(root string) ([]TreeNode, error) {
 		nodes = append(nodes, TreeNode{Path: entry.Name(), Name: entry.Name(), IsDir: entry.IsDir()})
 	}
 	return nodes, nil
-}
-
-func workspaceOpen(root string) (string, error) {
-	if root == "" {
-		return "", errString("no-workspace: no workspace folder")
-	}
-	return filepath.Clean(root), nil
 }
