@@ -1,0 +1,69 @@
+schemaVersion: "0.1"
+kind: product-evidence-intake
+
+source:
+  id: example-product
+  repository: ""
+  localPath: ""
+  branch: ""
+  commit: ""
+  packageVersions: {}
+  workingTree: unknown
+  upstreamFreshness: unknown
+  canonicalFor: []
+
+scope:
+  requested: ""
+  surfaces:
+    - rules
+    - architecture
+    - manifests
+    - public-contracts
+    - validators
+    - tests
+  excluded: []
+
+evidence:
+  rules: []
+  manifests: []
+  contracts: []
+  validators: []
+  tests: []
+  decisions: []
+
+candidates:
+  contracts: []
+  registryRecords: []
+  conformanceScenarios: []
+  validators: []
+  adapters: []
+  slices: []
+  productOnly: []
+  discarded: []
+
+impact:
+  contractVersion: none
+  fw: []
+  registry: []
+  fwyml: []
+  migrations: []
+
+verification:
+  sourceCommands: []
+  fwCommands: []
+  fwymlCommands: []
+  fixtureProducts: []
+  physicalAbsenceChecks: []
+  driftCases: []
+
+provenance:
+  publicSurfaceDigests: {}
+  artifactIntegrity: {}
+  conformanceResults: []
+
+decision:
+  status: draft
+  blockers: []
+  nonGoals: []
+  notes: []
+

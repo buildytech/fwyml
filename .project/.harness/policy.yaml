@@ -1,0 +1,127 @@
+schemaVersion: "0.1"
+kind: framework-extraction-harness
+
+purpose:
+  - inspect real products as evidence
+  - extract framework-agnostic contracts and checks
+  - register concrete adapters without importing them
+  - keep fwyml generic and product-neutral
+  - detect contract drift before user products break
+
+owners:
+  fw:
+    repository: buildytech/fw
+    owns:
+      - manifest and registry schemas
+      - capability specifications
+      - conformance scenarios
+      - registry source records
+      - compatibility policy
+    forbids:
+      - adapter implementation code
+      - runtime dependencies
+      - product vertical vocabulary
+  fwyml:
+    repository: buildytech/fwyml
+    owns:
+      - YAML parsing and validation
+      - registry resolution and offline snapshots
+      - lock generation
+      - dependency materialization
+      - validator and harness execution
+      - diagnostics and context-pack emission
+    forbids:
+      - adapter implementation code
+      - UI or host runtime dependencies
+      - product-specific branches
+      - hidden network access
+  sourceProduct:
+    owns:
+      - concrete implementation evidence
+      - stack-specific rules
+      - product validators and tests
+    mutation: explicit-user-request-only
+  userProduct:
+    owns:
+      - selected adapters and dependencies
+      - generated composition glue
+      - product slices and business logic
+      - brand contract, CI, lock, and delivery
+    invariant: unselected-capabilities-are-physically-absent
+
+classification:
+  contract:
+    destination: fw
+    test: observable-and-stack-agnostic
+  registry:
+    destination: fw
+    test: describes-a-real-versioned-artifact
+  conformance:
+    destination: fw
+    test: executable-observation-of-a-contract
+  validator:
+    destination: fw-registry
+    test: versioned-command-with-machine-readable-result
+  cli:
+    destination: fwyml
+    test: required-by-more-than-one-product-or-registry-kind
+  adapter:
+    destination: external-repository
+    test: implements-one-port-on-one-stack
+  slice:
+    destination: product-or-preset-registry
+    test: vertical-use-case-without-new-core-semantics
+  product:
+    destination: source-product
+    test: business-specific-code-or-copy
+  discard:
+    destination: nowhere
+    test: obsolete-duplicate-or-unverifiable
+
+canonicalEvidence:
+  - id: sveltecms
+    localHint: ../SvelteCMS
+    surfaces:
+      - .cursor/rules
+      - package manifests
+      - validators
+      - public contracts
+      - tests
+    authority:
+      - spec-driven admin workflow
+      - generic repository transport
+      - UI8Kit composition
+      - Retag and UI8PX validation
+  - id: contently
+    localHint: ../../_@GoWails3/@ContentlY
+    surfaces:
+      - .cursor/rules
+      - go.mod
+      - package manifests
+      - content contracts
+      - validators
+      - tests
+    authority:
+      - portable workshop ownership
+      - Codex and FormSet boundaries
+      - source-of-truth and derived-index invariants
+      - Svelte host composition
+
+updateOrder:
+  - establish-source-freshness
+  - write-extraction-report
+  - update-fw-schema-spec-or-registry
+  - regenerate-and-pin-registry-snapshot
+  - update-fwyml-only-for-generic-behavior
+  - add-or-update-conformance-and-cli-tests
+  - run-source-and-consumer-verification
+  - record-source-ref-and-contract-digests
+
+stopConditions:
+  - source-freshness-is-unknown-and-change-claims-current-canon
+  - proposed-core-record-contains-product-vocabulary
+  - proposed-cli-change-special-cases-one-product-or-stack
+  - contract-change-has-no-conformance-change
+  - registry-artifact-has-no-version-or-integrity
+  - removal-cannot-prove-physical-absence
+

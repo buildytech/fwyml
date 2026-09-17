@@ -1,0 +1,96 @@
+schemaVersion: "0.1"
+kind: registry-drift-cases
+
+cases:
+  - id: unchanged
+    selected:
+      contract: editor@1.2
+      sourceRef: package@1.4.0
+      publicDigest: sha256:contract-a
+      artifactDigest: sha256:artifact-a
+      conformanceRef: editor@1.2/package@1.4.0
+    discovered:
+      contract: editor@1.2
+      sourceRef: package@1.4.0
+      publicDigest: sha256:contract-a
+      artifactDigest: sha256:artifact-a
+    expected:
+      codes: []
+      resolve: true
+
+  - id: implementation-rewritten
+    selected:
+      contract: editor@1.2
+      sourceRef: package@1.4.0
+      publicDigest: sha256:contract-a
+      artifactDigest: sha256:artifact-a
+      conformanceRef: editor@1.2/package@1.4.0
+    discovered:
+      contract: editor@1.2
+      sourceRef: package@1.5.0
+      publicDigest: sha256:contract-a
+      artifactDigest: sha256:artifact-b
+    expected:
+      codes:
+        - FWYML_REVERIFY_REQUIRED
+      resolve: false
+      remediation: publish-conformance-for-new-source-ref
+
+  - id: compatible-contract-extension
+    selected:
+      contract: editor@1.2
+      adapterRange: ">=1.1 <2"
+    discovered:
+      contract: editor@1.3
+      publicDigest: sha256:contract-b
+      conformanceRef: editor@1.3/package@1.5.0
+    expected:
+      codes:
+        - FWYML_UPDATE_AVAILABLE
+      resolve: true
+      lockUnchanged: true
+
+  - id: breaking-contract-change
+    selected:
+      contract: editor@1.2
+      adapterRange: ">=1.1 <2"
+    discovered:
+      contract: editor@2.0
+      publicDigest: sha256:contract-c
+    expected:
+      codes:
+        - FWYML_CONTRACT_INCOMPATIBLE
+      resolve: false
+      remediation: explicit-manifest-migration
+
+  - id: changed-unverified-artifact
+    selected:
+      contract: editor@1.2
+      sourceRef: package@1.4.0
+    discovered:
+      contract: editor@1.2
+      sourceRef: package@1.5.0
+      artifactDigest: ""
+      conformanceRef: ""
+    expected:
+      codes:
+        - FWYML_SOURCE_DRIFT
+        - FWYML_UNVERIFIED_ARTIFACT
+      resolve: false
+
+  - id: removed-capability-left-behind
+    selectedCapabilities:
+      - ui
+      - host
+    materializedPackages:
+      - ui-adapter
+      - host-adapter
+      - editor-adapter
+    packageCapabilities:
+      editor-adapter: editor
+    expected:
+      codes:
+        - FWYML_ABSENCE_VIOLATION
+        - FWYML_LOCK_MISMATCH
+      resolve: false
+
