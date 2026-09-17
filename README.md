@@ -1,73 +1,57 @@
-# fwyml: Declarative CLI Runner for the BuildY Ecosystem
+# fwyml
 
-**The declarative YAML runner for [BuildY Framework](https://github.com/buildytech/fw).**
+Generic compiler from an [FW](https://github.com/buildytech/fw) product
+manifest plus registry data into a user repository.
 
-Package: [fwyml on npm](https://www.npmjs.com/package/fwyml).  
-Source: [github.com/buildytech/fwyml](https://github.com/buildytech/fwyml).
-
-`fwyml` reads a product manifest and invokes `buildytech/fw` packages. It does
-not embed adapters, host runtimes, or UI kits. If a capability is not in the
-manifest, `fwyml` does not pull that package — absence is physical.
+`fwyml` does not embed adapters, host runtimes, or UI kits. If a capability
+is not selected, it is not downloaded, generated, or linked.
 
 License: [Apache License 2.0](LICENSE).
 
-## Why fwyml?
+## Runtime
 
-`fw` is the contract: ports, DTOs, invariants, and a conformance suite.
-`fwyml` is the command that turns that contract into a composition root.
-
-You describe the product in YAML. `fwyml` resolves the selected `fw`
-packages, scaffolds the root, and runs verify or delivery through those
-packages. No per-stack init scripts. No feature flags that leave unused
-code in the tree.
-
-## Install
-
-No global install required:
+Node 22 or newer. No adapter install is required to parse or validate a
+manifest.
 
 ```bash
-npx fwyml init
-npx fwyml sync
-npx fwyml verify
+npx fwyml --version
+npx fwyml validate --manifest fw.yaml
 ```
-
-## Manifest
-
-```yaml
-product: wp-theme-studio
-contract: 1.x
-capabilities:
-  workspace: { adapter: fs-local }
-  ui:        { adapter: ui-latte }
-  host:      { adapter: host-php-cli }
-  preview:   { adapter: pack-nginx-mariadb }
-delivery: portable-windows
-```
-
-The manifest is the only place where concrete technologies meet. `fwyml`
-forwards each selected capability to the matching `fw` package. Unlisted
-capabilities are not downloaded, generated, or linked.
 
 ## Commands
 
 | Command | Role |
 | --- | --- |
-| `fwyml init` | scaffold a product root from the manifest |
-| `fwyml sync` | reconcile the root after a manifest change |
-| `fwyml verify` | run `fw` conformance for selected capabilities |
-| `fwyml up` | assemble and start the selected composition |
-| `fwyml pack` | produce the delivery artifact |
+| `fwyml validate` | check a manifest against the pinned FW schema |
+| `fwyml resolve` | compute the graph, absences, and lock proposal |
+| `fwyml sync --dry-run` | print the materialization plan |
+| `fwyml sync` | write owned files, lock, and dependency manifests |
+| `fwyml verify` | run lock, absence, and provenance checks |
+| `fwyml verify --strict` | fail blocked or unverified records |
+| `fwyml context` | emit a grounded pack; no model call |
+
+`up` and `pack` wait until a generated product passes build conformance.
+
+Registry precedence: `--registry`, then manifest `registries`, then the
+bundled snapshot. `FWYML_VSA_REGISTRY` may point at a local draft index.
+Network refresh is never implicit.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| 0 | success |
+| 1 | validation or resolution failure |
+| 2 | verification failure |
+| 3 | owned-file or lock conflict |
+| 64 | usage |
+
+`--json` prints a machine-readable report for every command.
 
 ## What this is not
 
 - not a UI framework and not an IDE
 - not a runtime plugin loader
-- not a wrapper that vendors every adapter into one binary
+- not a reimplementation of UI8Kit, UI8PX, Retag, Wails, or host SDKs
 
-Architecture lives in `fw`. `fwyml` is the runner.
-
-## License
-
-Copyright 2026 BuildY.
-
-Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
+Architecture lives in `fw`. `fwyml` is the compiler.

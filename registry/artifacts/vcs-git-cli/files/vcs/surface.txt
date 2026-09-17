@@ -1,0 +1,3 @@
+vcs-git-cli
+contract: vcs@0
+adapter: git CLI; remote failures stay explicit

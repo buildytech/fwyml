@@ -1,0 +1,3 @@
+editor-surface
+requires: editor
+binds the selected editor adapter into the workshop shell

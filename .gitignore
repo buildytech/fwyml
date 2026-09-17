@@ -1,1 +1,4 @@
 .manual/
+node_modules/
+dist/
+

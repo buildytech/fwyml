@@ -1,0 +1,5 @@
+browse-webview2-windows
+contract: browse@0
+extracted: session lifecycle only
+non-obligation: no full-browser DevTools, no device emulation
+source: https://github.com/buildy-ui/ide.git@fda6faf8d6493aa1bd82d4083b1de8a565da32a3

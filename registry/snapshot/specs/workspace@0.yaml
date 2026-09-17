@@ -1,0 +1,25 @@
+id: workspace
+contract: workspace@0
+kind: capability
+obligations:
+  dtos:
+    - folder identity
+    - relative safe path
+    - revision token
+  operations:
+    - open a folder
+    - read, write, create, and delete files through safe paths
+    - revision-checked write
+  events:
+    - folder opened
+    - revision conflict
+  invariants:
+    - the opened folder is authoritative
+    - writes fail when the revision does not match
+    - the view layer does not invent a second content API
+  nonObligations:
+    - does not require a specific filesystem library
+    - does not include remote sync
+  conformance:
+    - workspace-revision-write
+readiness: draft

@@ -1,0 +1,24 @@
+id: browse
+contract: browse@0
+kind: capability
+obligations:
+  dtos:
+    - view identity
+    - navigation request
+    - inspect payload
+  operations:
+    - create, show, hide, and dispose a native view
+    - navigate
+    - isolate storage
+  events:
+    - navigated
+    - disposed
+  invariants:
+    - sessions are isolated
+    - process disposal leaves no orphan view
+  nonObligations:
+    - does not promise full-browser DevTools
+    - does not promise device emulation
+  conformance:
+    - browse-session-dispose
+readiness: draft

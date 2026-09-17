@@ -1,0 +1,19 @@
+id: delivery
+contract: delivery@0
+kind: capability
+obligations:
+  dtos:
+    - on-disk layout
+    - portable state location
+  operations:
+    - assemble a reproducible artifact
+    - place portable state beside the executable when selected
+  events:
+    - packed
+  invariants:
+    - unselected capabilities are absent from the artifact
+  nonObligations:
+    - does not prescribe Windows except in a Windows adapter
+  conformance:
+    - portable-delivery
+readiness: draft

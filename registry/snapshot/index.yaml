@@ -1,0 +1,8 @@
+schemaVersion: fw.buildy.tech/registry/v0alpha1
+kind: Registry
+metadata:
+  id: fwyml-offline-snapshot
+  status: draft
+include:
+  - tools.yaml
+  - records.yaml

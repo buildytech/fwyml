@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fw.buildy.tech/schemas/v0alpha1/lock.schema.json",
+  "title": "FW lock",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind", "product", "records", "absent", "ownership"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "fw.buildy.tech/lock/v0alpha1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "Lock"
+    },
+    "product": { "type": "string" },
+    "registrySnapshot": { "type": "string" },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "version"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "type": "string" },
+          "version": { "type": "string" },
+          "contract": { "type": "string" },
+          "sourceKind": { "type": "string" },
+          "sourceRef": { "type": "string" },
+          "publicDigest": { "type": "string" },
+          "outputDigest": { "type": "string" },
+          "readiness": { "type": "string" },
+          "portable": { "type": "boolean" },
+          "conformanceRef": { "type": "string" }
+        }
+      }
+    },
+    "absent": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "npm": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "go": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}

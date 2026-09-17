@@ -1,0 +1,24 @@
+id: agent
+contract: agent@0
+kind: capability
+obligations:
+  dtos:
+    - closed event envelope
+    - prompt
+    - abort token
+    - capability listing
+  operations:
+    - start a run
+    - stream events
+    - abort
+  events:
+    - a closed set only; unknown types are a contract break
+  invariants:
+    - the presentation layer never imports a vendor client
+    - runtime identity is opaque
+  nonObligations:
+    - does not promise a provider
+    - does not require a sidecar to exist before an adapter is verified
+  conformance:
+    - agent-event-stream
+readiness: draft

@@ -1,0 +1,25 @@
+id: host
+contract: host@0
+kind: capability
+obligations:
+  dtos:
+    - Application lifecycle state
+    - Native window handle identity (opaque)
+    - IPC request and event envelopes
+  operations:
+    - start, stop, and restart the host process
+    - create and dispose the primary window
+    - serve selected application assets
+    - dispatch typed IPC
+  events:
+    - started, stopping, stopped
+    - window ready and closed
+  invariants:
+    - one selected host adapter per product
+    - host paths and process handles do not enter the presentation layer
+  nonObligations:
+    - does not require Wails or any named desktop toolkit
+    - does not prescribe menu copy or product identity
+  conformance:
+    - host-lifecycle
+readiness: draft

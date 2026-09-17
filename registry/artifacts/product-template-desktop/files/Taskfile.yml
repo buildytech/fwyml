@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  build:
+    desc: Build the selected frontend and the Wails desktop executable
+    cmds:
+      - go build -ldflags="-H windowsgui" -o bin/app{{exeExt}} .
+  generate:
+    desc: Generate bindings from the selected service surface
+    cmds:
+      - wails3 generate bindings -ts
+  verify:
+    cmds:
+      - go test ./...
+      - go vet ./...

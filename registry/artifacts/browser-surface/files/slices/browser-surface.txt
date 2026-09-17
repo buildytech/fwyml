@@ -1,0 +1,3 @@
+browser-surface
+requires: browse
+native view chrome; no device emulation

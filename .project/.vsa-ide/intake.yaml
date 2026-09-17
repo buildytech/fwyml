@@ -166,9 +166,11 @@ impact:
 
 blockers:
   - id: FW-OWNERSHIP
-    detail: FW planning docs still assign CLI and generator commands to fw
+    detail: Resolved in planning docs; FW no longer assigns materializer commands to an fw executable
+    status: resolved
   - id: FY-EMPTY
-    detail: fwyml currently publishes documentation only and has no bin
+    detail: fwyml now has a bin, schemas, resolver, and snapshot; products are still draft stubs
+    status: open
   - id: HOST-COUPLED
     detail: Wails host, menu, services, and product identity are not extracted
   - id: BROWSE-INTERNAL

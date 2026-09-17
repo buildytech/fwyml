@@ -1,0 +1,4 @@
+delivery-portable-windows
+contract: delivery@0
+layout: <exe>/data/{state,webview,tmp,cache,logs}
+non-obligation: Windows is selected by this adapter, not by the port

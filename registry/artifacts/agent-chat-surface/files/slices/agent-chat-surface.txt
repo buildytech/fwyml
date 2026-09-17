@@ -1,0 +1,4 @@
+agent-chat-surface
+requires: agent
+chat surface over the closed event contract
+ui families: svelte, solid

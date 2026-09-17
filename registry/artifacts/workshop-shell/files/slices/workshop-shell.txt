@@ -1,0 +1,3 @@
+workshop-shell
+requires: host, ui
+application chrome without product-specific menu copy

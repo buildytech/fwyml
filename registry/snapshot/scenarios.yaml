@@ -1,0 +1,34 @@
+schemaVersion: "0.1"
+kind: conformance-scenarios
+cases:
+  - id: host-lifecycle
+    observes:
+      - process start and stop
+      - one native window
+      - no orphan selected sidecars
+  - id: selected-ui-runtime
+    observes:
+      - exactly one UI runtime is present
+      - foreign UI runtimes are absent
+  - id: workspace-revision-write
+    observes:
+      - safe path enforcement
+      - write rejected on revision mismatch
+  - id: agent-event-stream
+    observes:
+      - closed event set
+      - abort
+      - opaque runtime
+  - id: browse-session-dispose
+    observes:
+      - isolated storage
+      - view disposal
+  - id: portable-delivery
+    observes:
+      - reproducible on-disk layout
+      - portable state beside the executable when selected
+  - id: vertical-slice-removal
+    observes:
+      - owned files gone
+      - owned dependencies gone
+      - physical absence of the dropped surface

@@ -1,0 +1,3 @@
+explorer-surface
+requires: explorer
+workspace tree projection

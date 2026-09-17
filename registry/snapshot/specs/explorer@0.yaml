@@ -1,0 +1,21 @@
+id: explorer
+contract: explorer@0
+kind: capability
+obligations:
+  dtos:
+    - tree node
+    - open intent
+  operations:
+    - project the workspace tree
+    - emit an open intent for a path
+  events:
+    - tree changed
+    - open requested
+  invariants:
+    - paths resolve through workspace
+  nonObligations:
+    - does not own file bytes
+    - does not require a specific widget tree
+  conformance:
+    - explorer-open-intent
+readiness: draft

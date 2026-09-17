@@ -1,0 +1,221 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fw.buildy.tech/schemas/v0alpha1/registry-envelope.schema.json",
+  "title": "FW registry envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "fw.buildy.tech/registry/v0alpha1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "Registry"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["reserved", "draft", "verified", "blocked"]
+        }
+      }
+    },
+    "include": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "records": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/record" }
+    }
+  },
+  "definitions": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "version"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "capability",
+            "adapter",
+            "generator",
+            "validator",
+            "guidance",
+            "vertical-slice",
+            "product-template",
+            "delivery"
+          ]
+        },
+        "version": { "type": "string", "minLength": 1 },
+        "contract": { "type": "string" },
+        "contractRange": { "type": "string" },
+        "provides": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "requires": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "conflicts": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "surfaces": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "uiFamilies": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "hostFamilies": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "adapterConstraints": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "removal": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ownedFiles": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "ownedDependencies": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "ownedRoutes": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "ownedBindings": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "compatibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "platforms": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "runtimes": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": ["npm", "go-module", "git", "local", "generated", "files", "none"]
+            },
+            "path": { "type": "string" },
+            "repository": { "type": "string" },
+            "commit": { "type": "string" },
+            "package": { "type": "string" },
+            "module": { "type": "string" },
+            "subpath": { "type": "string" },
+            "portable": { "type": "boolean" }
+          }
+        },
+        "integrity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "publicDigest": { "type": "string" },
+            "outputDigest": { "type": "string" }
+          }
+        },
+        "readiness": {
+          "type": "string",
+          "enum": ["draft", "verified", "blocked"]
+        },
+        "validatorRefs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "conformanceRefs": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "guidance": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "command": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "argv": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "cwd": { "type": "string" },
+            "prepare": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "inputs": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "exit": { "type": "string" }
+          }
+        },
+        "ownedFiles": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "npm": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "dependencies": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            },
+            "devDependencies": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
+            }
+          }
+        },
+        "go": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "module": { "type": "string" },
+            "require": { "type": "string" },
+            "replace": { "type": "string" }
+          }
+        },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
