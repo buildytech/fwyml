@@ -47,6 +47,7 @@ Stable machine-readable codes:
 | `FWYML_UNVERIFIED_ARTIFACT` | error in strict mode | version or integrity lacks conformance provenance |
 | `FWYML_REGISTRY_INVALID` | error | registry schema, include, or source cannot be trusted |
 | `FWYML_REGISTRY_AMBIGUITY` | error | one registry source declares an id more than once or includes cyclic data |
+| `FWYML_SOURCE_MISSING` | error | selected artifact root or declared owned source file is absent |
 | `FWYML_DEPENDENCY_CONFLICT` | error | selected records require different exact versions of one dependency |
 | `FWYML_LOCK_MISMATCH` | error | materialized tree differs from the lock |
 | `FWYML_ABSENCE_VIOLATION` | error | unselected capability is present |

@@ -319,12 +319,31 @@ function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnost
     if (record.source?.kind === "local") {
       local = true;
     }
-    for (const dest of collectOwned(record)) {
-      if (root) {
-        const from = join(root, "files", dest);
-        const bucket = record.kind === "guidance" ? guidance : files;
-        bucket.push({ dest, from, owner: record.id });
+    const owned = collectOwned(record);
+    if (owned.length > 0 && (!root || !existsSync(root))) {
+      addDiagnostic(diagnostics, {
+        code: "FWYML_SOURCE_MISSING",
+        severity: "error",
+        message: `record ${record.id} owns files but its artifact root is unavailable`,
+        id: record.id,
+        remediation: "restore-or-correct-artifact-source",
+      });
+      continue;
+    }
+    for (const dest of owned) {
+      const from = join(root!, "files", dest);
+      if (!existsSync(from)) {
+        addDiagnostic(diagnostics, {
+          code: "FWYML_SOURCE_MISSING",
+          severity: "error",
+          message: `record ${record.id} owns missing source file ${dest}`,
+          id: record.id,
+          remediation: "restore-or-correct-artifact-source",
+        });
+        continue;
       }
+      const bucket = record.kind === "guidance" ? guidance : files;
+      bucket.push({ dest, from, owner: record.id });
     }
     addDependencies(npm, record.npm?.dependencies ?? {});
     addDependencies(npmDev, record.npm?.devDependencies ?? {});

@@ -110,6 +110,7 @@ function hasBlockingResolutionError(diagnostics: ReturnType<typeof resolveGraph>
     "FWYML_CONTRACT_INCOMPATIBLE",
     "FWYML_ABSENCE_VIOLATION",
     "FWYML_DEPENDENCY_CONFLICT",
+    "FWYML_SOURCE_MISSING",
   ]);
 }
 

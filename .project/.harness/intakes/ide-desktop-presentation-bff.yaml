@@ -1,0 +1,143 @@
+schemaVersion: "0.1"
+kind: product-evidence-intake
+
+source:
+  id: ide-buildy
+  repository: https://github.com/buildy-ui/ide.git
+  localPath: e:/_@GoWails3/@IDEBuildY
+  branch: main
+  commit: 0b983f12f50db4c3ed338b8e4deab891c6b36683
+  packageVersions:
+    go: "1.25.0"
+    wails: "v3.0.0-beta.19"
+  workingTree: dirty
+  upstreamFreshness: unknown
+  canonicalFor:
+    - local desktop presentation boundary
+    - Wails 3 transport evidence
+
+scope:
+  requested: >-
+    Make the IDE reusable across stack and selected composition through a
+    transport-independent Desktop presentation BFF, adapter boundaries, and
+    BuildY FW/fwyml assembly.
+  surfaces:
+    - rules
+    - architecture
+    - manifests
+    - public-contracts
+    - validators
+    - tests
+  excluded:
+    - promotion of IDE or Wails vocabulary into BuildY FW
+    - a second HTTP content API
+    - runtime plugin loading
+
+evidence:
+  rules:
+    - e:/_@GoWails3/@IDEBuildY/AGENTS.md
+  manifests:
+    - e:/_@GoWails3/@IDEBuildY/go.mod
+    - e:/_@GoWails3/@IDEBuildY/internal/product/profiles.json
+  contracts:
+    - e:/_@GoWails3/@IDEBuildY/internal/app/service.go
+    - e:/_@GoWails3/@IDEBuildY/packages/go/workspace
+    - e:/_@GoWails3/@IDEBuildY/packages/go/vcs
+    - e:/_@GoWails3/@IDEBuildY/packages/go/browse
+  validators:
+    - e:/_@GoWails3/@IDEBuildY/Taskfile.yml
+  tests:
+    - e:/_@GoWails3/@IDEBuildY/internal/app/service_test.go
+    - e:/_@GoWails3/@IDEBuildY/internal/app/session_test.go
+  decisions:
+    - e:/_@GoWails3/@IDEBuildY/.project/decisions/0006-go-ipc-boundary.md
+    - e:/_@GoWails3/@IDEBuildY/.project/decisions/0008-portable-product-composition.md
+    - e:/_@GoWails3/@IDEBuildY/.project/decisions/0009-desktop-presentation-bff.md
+
+candidates:
+  contracts:
+    - capability: host@0
+      classification: existing-fw-contract
+      observation: host paths and native UI state remain outside the WebView
+    - capability: workspace@0
+      classification: existing-fw-contract
+      observation: relative paths and revision-checked writes are UI-safe
+    - capability: presentation-backend
+      classification: deferred
+      reason: a generic FW contract needs evidence from at least two products
+  registryRecords:
+    - id: host-wails3-go
+      classification: existing-adapter-record
+      action: reverify after extraction
+  conformanceScenarios:
+    - id: desktop-bff-transport-neutral
+      classification: product-conformance-candidate
+      observation: presentation BFF dependency closure excludes Wails
+  validators:
+    - id: wails-bindings
+      classification: existing-registry-validator
+  adapters:
+    - id: wails-ui-thread-dispatch
+      classification: product-transport-adapter
+      destination: source-product
+  slices:
+    - id: ide-desktop-presentation-bff
+      classification: product-slice
+      destination: preset-registry-after-second-product
+  productOnly:
+    - IDE commands, copy, workbench layout, and product acceptance
+  discarded:
+    - a generic RPC endpoint
+    - product-specific branches in fwyml
+
+impact:
+  contractVersion: none
+  fw:
+    - no new FW contract before a second product proves the boundary
+  registry:
+    - reverify extracted Wails host and IDE presentation slice records
+  fwyml:
+    - materialize generated transport facade only from registry-declared outputs
+  migrations:
+    - replace runtime feature profiles with statically selected composition
+
+verification:
+  sourceCommands:
+    - go test ./...
+    - go vet ./...
+    - bun run validate
+    - bun run build
+    - wails3 task verify
+  fwCommands:
+    - bun run validate
+  fwymlCommands:
+    - bun run test
+  fixtureProducts:
+    - workshop-templ
+    - workshop-svelte-agent
+    - assistant-solid-browser
+  physicalAbsenceChecks:
+    - unselected transport endpoints and bindings
+    - unselected UI slices and package dependencies
+    - unselected delivery files
+  driftCases:
+    - implementation
+    - provenance
+    - removed-capability
+
+provenance:
+  publicSurfaceDigests: {}
+  artifactIntegrity: {}
+  conformanceResults:
+    - internal/app dependency closure has no Wails package after initial injection extraction
+
+decision:
+  status: active
+  blockers:
+    - no second completed product yet proves a generic presentation backend contract
+  nonGoals:
+    - rewriting the product UI during boundary extraction
+    - hidden runtime capability flags in generated products
+  notes:
+    - Local source is dirty due to this explicitly requested migration.
+    - Remote freshness was intentionally not asserted.
