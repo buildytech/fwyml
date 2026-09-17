@@ -387,104 +387,227 @@ records:
       publicDigest: sha256:draft-agent-runtime
     conformanceRefs: [agent-event-stream]
 
-  - id: workshop-shell
+  - id: workshop-shell-templ
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
     requires: [host, ui]
     surfaces: [application-shell]
-    uiFamilies: [templ, svelte, solid]
+    uiFamilies: [templ]
     hostFamilies: [go]
     source:
       kind: files
-      path: ../artifacts/workshop-shell
+      path: ../artifacts/workshop-shell-templ
       portable: false
     ownedFiles:
-      - slices/workshop-shell.txt
+      - slices/workshop-shell-templ.txt
+      - views/app.templ
+    removal:
+      ownedFiles: [slices/workshop-shell-templ.txt, views/app.templ]
+    integrity:
+      publicDigest: sha256:draft-workshop-shell-templ
+
+  - id: workshop-shell-svelte
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires: [host, ui]
+    surfaces: [application-shell]
+    uiFamilies: [svelte]
+    hostFamilies: [go]
+    source:
+      kind: files
+      path: ../artifacts/workshop-shell-svelte
+      portable: false
+    ownedFiles:
+      - slices/workshop-shell-svelte.txt
       - src/App.svelte
     removal:
-      ownedFiles: [slices/workshop-shell.txt, src/App.svelte]
+      ownedFiles: [slices/workshop-shell-svelte.txt, src/App.svelte]
     integrity:
-      publicDigest: sha256:draft-workshop-shell
+      publicDigest: sha256:draft-workshop-shell-svelte
 
-  - id: editor-surface
+  - id: workshop-shell-solid
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires: [host, ui]
+    surfaces: [application-shell]
+    uiFamilies: [solid]
+    hostFamilies: [go]
+    source:
+      kind: files
+      path: ../artifacts/workshop-shell-solid
+      portable: false
+    ownedFiles:
+      - slices/workshop-shell-solid.txt
+      - src/App.solid.tsx
+    removal:
+      ownedFiles: [slices/workshop-shell-solid.txt, src/App.solid.tsx]
+    integrity:
+      publicDigest: sha256:draft-workshop-shell-solid
+
+  - id: editor-surface-templ
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
     requires: [editor]
     surfaces: [editor]
-    uiFamilies: [templ, svelte]
+    uiFamilies: [templ]
     source:
       kind: files
-      path: ../artifacts/editor-surface
+      path: ../artifacts/editor-surface-templ
       portable: false
     ownedFiles:
-      - slices/editor-surface.txt
+      - slices/editor-surface-templ.txt
+      - views/editor.templ
+    removal:
+      ownedFiles:
+        - slices/editor-surface-templ.txt
+        - views/editor.templ
+    integrity:
+      publicDigest: sha256:draft-editor-surface-templ
+
+  - id: editor-surface-svelte
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires: [editor]
+    surfaces: [editor]
+    uiFamilies: [svelte]
+    source:
+      kind: files
+      path: ../artifacts/editor-surface-svelte
+      portable: false
+    ownedFiles:
+      - slices/editor-surface-svelte.txt
       - src/surfaces/Editor.svelte
     removal:
       ownedFiles:
-        - slices/editor-surface.txt
+        - slices/editor-surface-svelte.txt
         - src/surfaces/Editor.svelte
     integrity:
-      publicDigest: sha256:draft-editor-surface
+      publicDigest: sha256:draft-editor-surface-svelte
 
-  - id: explorer-surface
+  - id: explorer-surface-templ
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
     requires: [explorer]
     surfaces: [explorer]
+    uiFamilies: [templ]
     source:
       kind: files
-      path: ../artifacts/explorer-surface
+      path: ../artifacts/explorer-surface-templ
       portable: false
     ownedFiles:
-      - slices/explorer-surface.txt
+      - slices/explorer-surface-templ.txt
+      - views/explorer.templ
+    removal:
+      ownedFiles:
+        - slices/explorer-surface-templ.txt
+        - views/explorer.templ
+    integrity:
+      publicDigest: sha256:draft-explorer-surface-templ
+
+  - id: explorer-surface-svelte
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires: [explorer]
+    surfaces: [explorer]
+    uiFamilies: [svelte]
+    source:
+      kind: files
+      path: ../artifacts/explorer-surface-svelte
+      portable: false
+    ownedFiles:
+      - slices/explorer-surface-svelte.txt
       - src/surfaces/Explorer.svelte
     removal:
       ownedFiles:
-        - slices/explorer-surface.txt
+        - slices/explorer-surface-svelte.txt
         - src/surfaces/Explorer.svelte
     integrity:
-      publicDigest: sha256:draft-explorer-surface
+      publicDigest: sha256:draft-explorer-surface-svelte
 
-  - id: browser-surface
+  - id: browser-surface-templ
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
     requires: [browse]
     surfaces: [browse]
+    uiFamilies: [templ]
     source:
       kind: files
-      path: ../artifacts/browser-surface
+      path: ../artifacts/browser-surface-templ
       portable: false
     ownedFiles:
-      - slices/browser-surface.txt
+      - slices/browser-surface-templ.txt
     removal:
-      ownedFiles: [slices/browser-surface.txt]
+      ownedFiles: [slices/browser-surface-templ.txt]
     integrity:
-      publicDigest: sha256:draft-browser-surface
+      publicDigest: sha256:draft-browser-surface-templ
 
-  - id: agent-chat-surface
+  - id: browser-surface-solid
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires: [browse]
+    surfaces: [browse]
+    uiFamilies: [solid]
+    source:
+      kind: files
+      path: ../artifacts/browser-surface-solid
+      portable: false
+    ownedFiles:
+      - slices/browser-surface-solid.txt
+    removal:
+      ownedFiles: [slices/browser-surface-solid.txt]
+    integrity:
+      publicDigest: sha256:draft-browser-surface-solid
+
+  - id: agent-chat-surface-svelte
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
     requires: [agent]
     surfaces: [agent-chat]
-    uiFamilies: [svelte, solid]
+    uiFamilies: [svelte]
     source:
       kind: files
-      path: ../artifacts/agent-chat-surface
+      path: ../artifacts/agent-chat-surface-svelte
       portable: false
     ownedFiles:
-      - slices/agent-chat-surface.txt
+      - slices/agent-chat-surface-svelte.txt
       - src/surfaces/Chat.svelte
     removal:
       ownedFiles:
-        - slices/agent-chat-surface.txt
+        - slices/agent-chat-surface-svelte.txt
         - src/surfaces/Chat.svelte
     integrity:
-      publicDigest: sha256:draft-agent-chat
+      publicDigest: sha256:draft-agent-chat-svelte
+
+  - id: agent-chat-surface-solid
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires: [agent]
+    surfaces: [agent-chat]
+    uiFamilies: [solid]
+    source:
+      kind: files
+      path: ../artifacts/agent-chat-surface-solid
+      portable: false
+    ownedFiles:
+      - slices/agent-chat-surface-solid.txt
+      - src/surfaces/Chat.solid.tsx
+    removal:
+      ownedFiles:
+        - slices/agent-chat-surface-solid.txt
+        - src/surfaces/Chat.solid.tsx
+    integrity:
+      publicDigest: sha256:draft-agent-chat-solid
 
   - id: product-template-desktop
     kind: product-template

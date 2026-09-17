@@ -22,10 +22,10 @@ products:
       browse: extract
       delivery: extract
     slices:
-      workshop-shell: design
-      editor-surface: design
-      explorer-surface: design
-      browser-surface: design
+      workshop-shell-templ: design
+      editor-surface-templ: design
+      explorer-surface-templ: design
+      browser-surface-templ: design
     absent:
       - agent
       - agent-chat-surface
@@ -55,10 +55,10 @@ products:
       agent: blocked
       delivery: extract
     slices:
-      workshop-shell: design
-      editor-surface: design
-      explorer-surface: design
-      agent-chat-surface: design
+      workshop-shell-svelte: design
+      editor-surface-svelte: design
+      explorer-surface-svelte: design
+      agent-chat-surface-svelte: design
     absent:
       - browse
       - webview2-browser
@@ -87,8 +87,8 @@ products:
       browse: extract
       delivery: extract
     slices:
-      agent-chat-surface: design
-      browser-surface: design
+      agent-chat-surface-solid: design
+      browser-surface-solid: design
     absent:
       - workspace
       - editor

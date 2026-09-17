@@ -1,0 +1,2 @@
+editor-surface-svelte
+slices/editor-surface-svelte.txt

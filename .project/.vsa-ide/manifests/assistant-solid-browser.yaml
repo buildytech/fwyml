@@ -22,8 +22,8 @@ composition:
     delivery:
       use: delivery-portable-windows
   slices:
-    - agent-chat-surface
-    - browser-surface
+    - agent-chat-surface-solid
+    - browser-surface-solid
 
 quality:
   guidance:

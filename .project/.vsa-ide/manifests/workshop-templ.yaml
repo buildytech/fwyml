@@ -28,10 +28,10 @@ composition:
     delivery:
       use: delivery-portable-windows
   slices:
-    - workshop-shell
-    - editor-surface
-    - explorer-surface
-    - browser-surface
+    - workshop-shell-templ
+    - editor-surface-templ
+    - explorer-surface-templ
+    - browser-surface-templ
 
 quality:
   guidance:

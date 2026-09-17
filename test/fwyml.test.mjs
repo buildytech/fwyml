@@ -40,19 +40,19 @@ test("resolve keeps unselected capabilities absent", () => {
       file: "workshop-templ.yaml",
       absent: ["agent"],
       present: ["browse", "workspace"],
-      missingFiles: ["slices/agent-chat-surface.txt"],
+      missingFiles: ["src/App.svelte", "src/App.solid.tsx", "src/surfaces/Editor.svelte"],
     },
     {
       file: "workshop-svelte-agent.yaml",
       absent: ["browse"],
       present: ["agent", "editor"],
-      missingFiles: ["browse/surface.txt"],
+      missingFiles: ["views/app.templ", "src/App.solid.tsx"],
     },
     {
       file: "assistant-solid-browser.yaml",
       absent: ["workspace", "editor", "explorer", "vcs"],
       present: ["browse", "agent"],
-      missingFiles: ["workspace/surface.txt", "editor/surface.txt"],
+      missingFiles: ["views/app.templ", "src/App.svelte", "src/surfaces/Chat.svelte"],
     },
   ];
   for (const item of cases) {
@@ -321,11 +321,11 @@ test("verify detects a changed selected output from persisted ownership digests"
   const dir = mkdtempSync(join(tmpdir(), "fwyml-output-lock-"));
   const manifest = join(manifests, "workshop-templ.yaml");
   assert.equal(run(["sync", "--manifest", manifest, "--out", dir]).status, 0);
-  const output = join(dir, "slices", "editor-surface.txt");
+  const output = join(dir, "slices", "editor-surface-templ.txt");
   writeFileSync(output, `${readFileSync(output, "utf8")}user change\n`);
   const verified = run(["--json", "verify", "--manifest", manifest, "--out", dir]);
   assert.equal(verified.status, 2, verified.stderr);
-  assert.ok(JSON.parse(verified.stdout).diagnostics.some((row) => row.code === "FWYML_LOCK_MISMATCH" && row.id === "slices/editor-surface.txt"));
+  assert.ok(JSON.parse(verified.stdout).diagnostics.some((row) => row.code === "FWYML_LOCK_MISMATCH" && row.id === "slices/editor-surface-templ.txt"));
   rmSync(dir, { recursive: true, force: true });
 });
 
@@ -334,17 +334,17 @@ test("sync removes unchanged stale outputs and protects modified outputs", () =>
   const manifest = join(manifests, "workshop-templ.yaml");
   const changedManifest = join(dir, "reduced.yaml");
   const source = parse(readFileSync(manifest, "utf8"));
-  source.composition.slices = source.composition.slices.filter((id) => id !== "editor-surface");
+  source.composition.slices = source.composition.slices.filter((id) => id !== "editor-surface-templ");
   writeFileSync(changedManifest, JSON.stringify(source));
 
   assert.equal(run(["sync", "--manifest", manifest, "--out", dir]).status, 0);
-  assert.equal(existsSync(join(dir, "slices", "editor-surface.txt")), true);
+  assert.equal(existsSync(join(dir, "slices", "editor-surface-templ.txt")), true);
   const removed = run(["sync", "--manifest", changedManifest, "--out", dir]);
   assert.equal(removed.status, 0, removed.stderr);
-  assert.equal(existsSync(join(dir, "slices", "editor-surface.txt")), false);
+  assert.equal(existsSync(join(dir, "slices", "editor-surface-templ.txt")), false);
 
   assert.equal(run(["sync", "--manifest", manifest, "--out", dir]).status, 0);
-  const stale = join(dir, "slices", "editor-surface.txt");
+  const stale = join(dir, "slices", "editor-surface-templ.txt");
   writeFileSync(stale, `${readFileSync(stale, "utf8")}user change\n`);
   const protectedSync = run(["sync", "--manifest", changedManifest, "--out", dir]);
   assert.equal(protectedSync.status, 3, protectedSync.stderr);
