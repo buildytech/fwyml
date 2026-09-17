@@ -24,6 +24,7 @@ npx fwyml validate --manifest fw.yaml
 | --- | --- |
 | `fwyml validate` | check a manifest against the pinned FW schema |
 | `fwyml resolve` | compute the graph, absences, and lock proposal |
+| `fwyml fetch` | explicitly acquire selected pinned Git artifact sources |
 | `fwyml sync --dry-run` | print the materialization plan |
 | `fwyml sync` | write owned files, lock, and dependency manifests |
 | `fwyml verify` | run lock, absence, and provenance checks |
@@ -34,7 +35,10 @@ npx fwyml validate --manifest fw.yaml
 
 Registry precedence: `--registry`, then manifest `registries`, then the
 bundled snapshot. `FWYML_VSA_REGISTRY` may point at a local draft index.
-Network refresh is never implicit.
+Network refresh is never implicit. `fetch` is the only source-acquisition
+command; it checks out an exact Git commit into `.fwyml/sources` by default.
+For source trees whose layout differs from the materialized product,
+`source.exports` maps each owned destination to its repository-relative file.
 
 ## Compatibility and locks
 

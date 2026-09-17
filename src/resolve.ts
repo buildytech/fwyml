@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { isAbsolute, join, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve } from "node:path";
 import type { Diagnostic, Manifest, MaterializePlan, RegistryRecord, Resolution, ResolvedNode } from "./types.js";
 import { semanticDigest } from "./io.js";
 import { findRecord, type LoadedRegistry } from "./registry.js";
@@ -46,6 +46,15 @@ function addDiagnostic(list: Diagnostic[], item: Diagnostic): void {
 
 function collectOwned(record: RegistryRecord): string[] {
   return [...(record.ownedFiles ?? []), ...(record.removal?.ownedFiles ?? [])];
+}
+
+function sourceFile(record: RegistryRecord, root: string, dest: string): string | undefined {
+  const sourcePath = record.source?.exports?.[dest] ?? join("files", dest);
+  const file = resolve(root, sourcePath);
+  if (relative(root, file).startsWith("..")) {
+    return undefined;
+  }
+  return file;
 }
 
 type Version = readonly [number, number, number];
@@ -338,8 +347,8 @@ function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnost
       continue;
     }
     for (const dest of owned) {
-      const from = join(root!, "files", dest);
-      if (!existsSync(from)) {
+      const from = sourceFile(record, root!, dest);
+      if (!from || !existsSync(from)) {
         addDiagnostic(diagnostics, {
           code: "FWYML_SOURCE_MISSING",
           severity: "error",

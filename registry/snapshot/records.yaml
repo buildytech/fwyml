@@ -127,16 +127,16 @@ records:
     provides: [delivery]
     readiness: draft
     source:
-      kind: local
-      path: ../artifacts/delivery-portable-windows
+      kind: git
       repository: https://github.com/buildy-ui/ide.git
-      commit: fda6faf8d6493aa1bd82d4083b1de8a565da32a3
+      commit: cd2734d9ce0ea0bc5c9da59d023f148875415114
+      exports:
+        packages/go/portable/platform/paths.go: packages/go/portable/platform/paths.go
+        packages/go/portable/platform/paths_test.go: packages/go/portable/platform/paths_test.go
       portable: false
     ownedFiles:
-      - delivery/layout.txt
-      - compose/delivery.go
-      - internal/delivery/paths.go
-      - internal/delivery/paths_test.go
+      - packages/go/portable/platform/paths.go
+      - packages/go/portable/platform/paths_test.go
     integrity:
       publicDigest: sha256:draft-delivery
     conformanceRefs: [portable-delivery]
@@ -150,18 +150,28 @@ records:
     provides: [workspace]
     readiness: draft
     source:
-      kind: local
-      path: ../artifacts/workspace-fs-go
+      kind: git
       repository: https://github.com/buildy-ui/ide.git
-      commit: fda6faf8d6493aa1bd82d4083b1de8a565da32a3
+      commit: cd2734d9ce0ea0bc5c9da59d023f148875415114
+      exports:
+        packages/go/workspace/root.go: packages/go/workspace/root.go
+        packages/go/workspace/files.go: packages/go/workspace/files.go
+        packages/go/workspace/tree.go: packages/go/workspace/tree.go
+        packages/go/workspace/search.go: packages/go/workspace/search.go
+        packages/go/workspace/root_test.go: packages/go/workspace/root_test.go
+        packages/go/workspace/file_safety_test.go: packages/go/workspace/file_safety_test.go
+        packages/go/workspace/tree_test.go: packages/go/workspace/tree_test.go
+        packages/go/workspace/search_test.go: packages/go/workspace/search_test.go
       portable: false
     ownedFiles:
-      - workspace/surface.txt
-      - compose/workspace.go
-      - internal/workspace/root.go
-      - internal/workspace/safe.go
-      - internal/workspace/write.go
-      - internal/workspace/workspace_test.go
+      - packages/go/workspace/root.go
+      - packages/go/workspace/files.go
+      - packages/go/workspace/tree.go
+      - packages/go/workspace/search.go
+      - packages/go/workspace/root_test.go
+      - packages/go/workspace/file_safety_test.go
+      - packages/go/workspace/tree_test.go
+      - packages/go/workspace/search_test.go
     integrity:
       publicDigest: sha256:draft-workspace
     conformanceRefs: [workspace-revision-write]
@@ -193,14 +203,20 @@ records:
     provides: [vcs]
     readiness: draft
     source:
-      kind: local
-      path: ../artifacts/vcs-git-cli
+      kind: git
       repository: https://github.com/buildy-ui/ide.git
-      commit: fda6faf8d6493aa1bd82d4083b1de8a565da32a3
+      commit: cd2734d9ce0ea0bc5c9da59d023f148875415114
+      exports:
+        packages/go/vcs/git.go: packages/go/vcs/git.go
+        packages/go/vcs/git_test.go: packages/go/vcs/git_test.go
+        packages/go/process/process_windows.go: packages/go/process/process_windows.go
+        packages/go/process/process_other.go: packages/go/process/process_other.go
       portable: false
     ownedFiles:
-      - vcs/surface.txt
-      - compose/vcs.go
+      - packages/go/vcs/git.go
+      - packages/go/vcs/git_test.go
+      - packages/go/process/process_windows.go
+      - packages/go/process/process_other.go
     integrity:
       publicDigest: sha256:draft-vcs
     conformanceRefs: [vcs-status-and-failures]

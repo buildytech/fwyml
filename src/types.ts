@@ -53,6 +53,7 @@ export type RegistryRecord = {
     package?: string;
     module?: string;
     subpath?: string;
+    exports?: Record<string, string>;
     portable?: boolean;
     install?: "dependency" | "devDependency";
   };

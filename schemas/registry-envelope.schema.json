@@ -147,6 +147,10 @@
             "package": { "type": "string" },
             "module": { "type": "string" },
             "subpath": { "type": "string" },
+            "exports": {
+              "type": "object",
+              "additionalProperties": { "type": "string", "minLength": 1 }
+            },
             "portable": { "type": "boolean" },
             "install": {
               "type": "string",

@@ -6,12 +6,12 @@ source:
   repository: https://github.com/buildy-ui/ide.git
   localPath: e:/_@GoWails3/@IDEBuildY
   branch: main
-  commit: 0b983f12f50db4c3ed338b8e4deab891c6b36683
+  commit: cd2734d9ce0ea0bc5c9da59d023f148875415114
   packageVersions:
     go: "1.25.0"
     wails: "v3.0.0-beta.19"
-  workingTree: dirty
-  upstreamFreshness: unknown
+  workingTree: clean
+  upstreamFreshness: current
   canonicalFor:
     - local desktop presentation boundary
     - Wails 3 transport evidence
@@ -101,6 +101,8 @@ impact:
     - add a real desktop-presentation adapter record only after extracting its
       source and generated transport boundary
     - reverify extracted Wails host and IDE presentation slice records
+    - extract workspace-fs-go from the pinned IDE repository through declared
+      source exports, without an artifact copy
   fwyml:
     - materialize generated transport facade only from registry-declared outputs
     - reject absent artifact sources instead of creating placeholder files
@@ -152,5 +154,4 @@ decision:
     - rewriting the product UI during boundary extraction
     - hidden runtime capability flags in generated products
   notes:
-    - Local source is dirty due to this explicitly requested migration.
-    - Remote freshness was intentionally not asserted.
+    - Upstream main matched the pinned source commit on 2026-09-17.

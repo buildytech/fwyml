@@ -359,6 +359,62 @@ composition:
   rmSync(dir, { recursive: true, force: true });
 });
 
+test("fetch acquires a pinned git artifact before sync", () => {
+  const dir = mkdtempSync(join(tmpdir(), "fwyml-git-"));
+  const repository = join(dir, "repository");
+  const git = (argv) => {
+    const result = spawnSync("git", argv, { cwd: repository, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    return result.stdout.trim();
+  };
+  mkdirSync(join(repository, "implementation"), { recursive: true });
+  git(["init"]);
+  git(["config", "user.email", "fixture@example.com"]);
+  git(["config", "user.name", "Fixture"]);
+  writeFileSync(join(repository, "implementation", "source.ts"), "export const source = true;\n");
+  git(["add", "."]);
+  git(["commit", "-m", "fixture"]);
+  const commit = git(["rev-parse", "HEAD"]);
+
+  const registry = join(dir, "registry.yaml");
+  const manifest = join(dir, "fw.yaml");
+  const out = join(dir, "product");
+  writeFileSync(registry, JSON.stringify({
+    schemaVersion: "fw.buildy.tech/registry/v0alpha1",
+    kind: "Registry",
+    records: [{
+      id: "source",
+      kind: "capability",
+      version: "1",
+    }, {
+      id: "source-adapter",
+      kind: "adapter",
+      version: "1",
+      provides: ["source"],
+      source: {
+        kind: "git",
+        repository,
+        commit,
+        exports: { "src/source.ts": "implementation/source.ts" },
+      },
+      ownedFiles: ["src/source.ts"],
+    }],
+  }));
+  writeFileSync(manifest, JSON.stringify({
+    schemaVersion: "fw.buildy.tech/v0alpha1",
+    kind: "Product",
+    metadata: { name: "git-fixture" },
+    composition: { capabilities: { source: { use: "source-adapter" } } },
+  }));
+
+  const fetched = run(["--json", "fetch", "--manifest", manifest, "--registry", registry, "--out", out]);
+  assert.equal(fetched.status, 0, `${fetched.stdout}${fetched.stderr}`);
+  const synced = run(["sync", "--manifest", manifest, "--registry", registry, "--out", out]);
+  assert.equal(synced.status, 0, `${synced.stdout}${synced.stderr}`);
+  assert.equal(existsSync(join(out, "src", "source.ts")), true);
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test("registered tool preparation runs before the declared command", () => {
   const dir = mkdtempSync(join(tmpdir(), "fwyml-tools-"));
   const result = runSelectedTools({

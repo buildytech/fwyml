@@ -12,12 +12,16 @@ function runGit(argv: string[], cwd?: string): { ok: boolean; output: string } {
   };
 }
 
+function gitCacheKey(repository: string, commit: string): string {
+  return sha256(`${repository}\n${commit}`).replace(/^sha256:/, "").slice(0, 24);
+}
+
 export function gitArtifactRoot(record: RegistryRecord, cache: string): string | undefined {
   const source = record.source;
   if (source?.kind !== "git" || !source.repository || !source.commit) {
     return undefined;
   }
-  const key = sha256(`${source.repository}\n${source.commit}`).slice(0, 24);
+  const key = gitCacheKey(source.repository, source.commit);
   return join(cache, key, source.subpath ?? "");
 }
 
@@ -25,11 +29,10 @@ export function fetchGitSources(resolution: Resolution, cache: string): Diagnost
   const diagnostics: Diagnostic[] = [];
   for (const { record } of resolution.nodes) {
     const source = record.source;
-    const root = gitArtifactRoot(record, cache);
-    if (!source || !root) {
+    if (source?.kind !== "git" || !source.repository || !source.commit) {
       continue;
     }
-    const checkout = join(cache, sha256(`${source.repository}\n${source.commit}`).slice(0, 24));
+    const checkout = join(cache, gitCacheKey(source.repository, source.commit));
     if (existsSync(checkout)) {
       if (readdirSync(checkout).length === 0) {
         diagnostics.push({
@@ -55,12 +58,12 @@ export function fetchGitSources(resolution: Resolution, cache: string): Diagnost
     }
     mkdirSync(cache, { recursive: true });
     const cloned = runGit(["clone", "--no-checkout", source.repository!, checkout]);
-    const checkedOut = cloned.ok && runGit(["checkout", "--detach", source.commit!], checkout);
+    const checkedOut = cloned.ok ? runGit(["checkout", "--detach", source.commit!], checkout) : undefined;
     if (!cloned.ok || !checkedOut?.ok) {
       diagnostics.push({
         code: "FWYML_SOURCE_FETCH_FAILED",
         severity: "error",
-        message: `cannot fetch pinned git source for ${record.id}: ${cloned.ok ? checkedOut?.output : cloned.output}`,
+        message: `cannot fetch pinned git source for ${record.id}: ${cloned.ok ? checkedOut?.output ?? "" : cloned.output}`,
         id: record.id,
         remediation: "verify-repository-and-immutable-commit",
       });
