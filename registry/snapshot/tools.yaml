@@ -23,6 +23,8 @@ records:
     source:
       kind: npm
       package: ui8px
+      ref: "0.2.4"
+      install: devDependency
     command:
       argv: ["npx", "ui8px", "validate", "patterns", ".ui8px/scan"]
       prepare: ["node", "scripts/ui8px-prepare.mjs"]

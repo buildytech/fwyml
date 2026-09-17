@@ -48,7 +48,8 @@
             "additionalProperties": false,
             "required": ["use"],
             "properties": {
-              "use": { "type": "string", "minLength": 1 }
+              "use": { "type": "string", "minLength": 1 },
+              "contractRange": { "type": "string", "minLength": 1 }
             }
           }
         },

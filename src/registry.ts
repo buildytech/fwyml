@@ -1,13 +1,24 @@
 import { existsSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
-import { expandVars, packageRoot, readYaml } from "./io.js";
+import { expandVars, fileDigest, packageRoot, readYaml, semanticDigest } from "./io.js";
+import { assertRegistry } from "./schema.js";
 import type { Registry, RegistryRecord } from "./types.js";
 
 export type LoadedRegistry = {
   records: Map<string, RegistryRecord>;
   snapshotId: string;
+  snapshotDigest: string;
   roots: string[];
 };
+
+export class RegistryError extends Error {
+  constructor(
+    readonly code: "FWYML_REGISTRY_INVALID" | "FWYML_REGISTRY_AMBIGUITY",
+    message: string,
+  ) {
+    super(message);
+  }
+}
 
 function resolvePath(base: string, source: string, env: Record<string, string>): string {
   const expanded = expandVars(source, env);
@@ -20,22 +31,45 @@ function resolvePath(base: string, source: string, env: Record<string, string>):
   return resolve(base, expanded);
 }
 
-function loadEnvelope(path: string, into: Map<string, RegistryRecord>, roots: string[]): void {
+function loadEnvelope(
+  path: string,
+  into: Map<string, RegistryRecord>,
+  roots: string[],
+  documentDigests: string[],
+  seenIds: Set<string>,
+  seenPaths: Set<string>,
+): string | undefined {
   if (!existsSync(path)) {
-    throw new Error(`registry not found: ${path}`);
+    throw new RegistryError("FWYML_REGISTRY_INVALID", `registry not found: ${path}`);
   }
+  if (seenPaths.has(path)) {
+    throw new RegistryError("FWYML_REGISTRY_AMBIGUITY", `registry include cycle: ${path}`);
+  }
+  seenPaths.add(path);
   const dir = dirname(path);
   roots.push(dir);
-  const envelope = readYaml<Registry>(path);
+  let envelope: Registry;
+  try {
+    envelope = assertRegistry(readYaml<Registry>(path));
+  } catch (error) {
+    throw new RegistryError("FWYML_REGISTRY_INVALID", error instanceof Error ? error.message : String(error));
+  }
+  documentDigests.push(fileDigest(path));
   for (const record of envelope.records ?? []) {
+    if (seenIds.has(record.id)) {
+      throw new RegistryError("FWYML_REGISTRY_AMBIGUITY", `registry contains duplicate id ${record.id}: ${path}`);
+    }
+    seenIds.add(record.id);
     into.set(record.id, record);
   }
   for (const pattern of envelope.include ?? []) {
     const included = resolve(dir, pattern);
-    if (existsSync(included)) {
-      loadEnvelope(included, into, roots);
+    if (!existsSync(included)) {
+      throw new RegistryError("FWYML_REGISTRY_INVALID", `included registry not found: ${included}`);
     }
+    loadEnvelope(included, into, roots, documentDigests, seenIds, seenPaths);
   }
+  return envelope.metadata?.id;
 }
 
 export function loadRegistries(options: {
@@ -65,11 +99,17 @@ export function loadRegistries(options: {
     sources.push(resolve(env.FWYML_VSA_REGISTRY));
   }
   let snapshotId = "bundled";
-  for (const source of sources) {
-    loadEnvelope(source, records, roots);
-    snapshotId = source;
+  const documentDigests: string[] = [];
+  for (const source of [...new Set(sources)]) {
+    const label = loadEnvelope(source, records, roots, documentDigests, new Set<string>(), new Set<string>());
+    snapshotId = label ?? source;
   }
-  return { records, snapshotId, roots };
+  return {
+    records,
+    snapshotId,
+    snapshotDigest: semanticDigest(documentDigests.sort()),
+    roots,
+  };
 }
 
 export function findRecord(loaded: LoadedRegistry, id: string): RegistryRecord | undefined {

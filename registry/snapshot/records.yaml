@@ -89,6 +89,7 @@ records:
     version: 0.0.0-draft
     contract: host@0
     provides: [host]
+    features: [wails3]
     dependencies: [product-template-desktop]
     readiness: draft
     source:
@@ -222,6 +223,7 @@ records:
     version: 0.0.0-draft
     contract: ui@0
     provides: [ui, svelte]
+    features: [svelte5]
     readiness: draft
     source:
       kind: generated

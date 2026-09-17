@@ -19,6 +19,7 @@
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string" },
+        "revision": { "type": "string", "minLength": 1 },
         "status": {
           "type": "string",
           "enum": ["reserved", "draft", "verified", "blocked"]
@@ -60,6 +61,11 @@
         "provides": {
           "type": "array",
           "items": { "type": "string" }
+        },
+        "features": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true
         },
         "requires": {
           "type": "array",
@@ -137,10 +143,15 @@
             "path": { "type": "string" },
             "repository": { "type": "string" },
             "commit": { "type": "string" },
+            "ref": { "type": "string", "minLength": 1 },
             "package": { "type": "string" },
             "module": { "type": "string" },
             "subpath": { "type": "string" },
-            "portable": { "type": "boolean" }
+            "portable": { "type": "boolean" },
+            "install": {
+              "type": "string",
+              "enum": ["dependency", "devDependency"]
+            }
           }
         },
         "integrity": {
@@ -184,7 +195,12 @@
               "type": "array",
               "items": { "type": "string" }
             },
-            "exit": { "type": "string" }
+            "exit": { "type": "string" },
+            "phase": { "type": "string", "minLength": 1 },
+            "outputs": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
           }
         },
         "ownedFiles": {
@@ -202,6 +218,10 @@
             "devDependencies": {
               "type": "object",
               "additionalProperties": { "type": "string" }
+            },
+            "scripts": {
+              "type": "object",
+              "additionalProperties": { "type": "string" }
             }
           }
         },
@@ -215,7 +235,26 @@
           }
         },
         "notes": { "type": "string" }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["readiness"],
+            "properties": { "readiness": { "const": "verified" } }
+          },
+          "then": {
+            "required": ["source", "integrity", "conformanceRefs"],
+            "properties": {
+              "integrity": {
+                "required": ["publicDigest", "outputDigest"]
+              },
+              "conformanceRefs": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

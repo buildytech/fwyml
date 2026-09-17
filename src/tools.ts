@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { join } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
 import type { Diagnostic, Resolution } from "./types.js";
 
 export type ToolRun = {
@@ -18,6 +18,46 @@ function executableOnPath(name: string): boolean {
   return result.status === 0;
 }
 
+function run(
+  id: string,
+  argv: string[],
+  cwd: string,
+  runs: ToolRun[],
+  diagnostics: Diagnostic[],
+): boolean {
+  const bin = argv[0];
+  if (!bin || !executableOnPath(bin)) {
+    diagnostics.push({
+      code: "FWYML_UNVERIFIED_ARTIFACT",
+      severity: "warning",
+      message: `tool ${id} skipped; ${bin} is not on PATH`,
+      id,
+    });
+    return false;
+  }
+  if (bin === "npx" && argv[1] && !existsSync(join(cwd, "node_modules", argv[1]))) {
+    diagnostics.push({
+      code: "FWYML_UNVERIFIED_ARTIFACT",
+      severity: "warning",
+      message: `tool ${id} skipped; package is not installed`,
+      id,
+    });
+    return false;
+  }
+  const result = spawnSync(bin, argv.slice(1), { cwd, encoding: "utf8" });
+  runs.push({ id, argv, status: result.status, stdout: result.stdout, stderr: result.stderr });
+  if (result.status !== 0) {
+    diagnostics.push({
+      code: "FWYML_TOOL_FAILED",
+      severity: "error",
+      message: `tool ${id} exited ${result.status}`,
+      id,
+    });
+    return false;
+  }
+  return true;
+}
+
 export function runSelectedTools(
   resolution: Resolution,
   cwd: string,
@@ -29,41 +69,20 @@ export function runSelectedTools(
     if ((tool.phase ?? "verify") !== phase) {
       continue;
     }
-    const bin = tool.argv[0];
-    if (!bin || !executableOnPath(bin)) {
-      diagnostics.push({
-        code: "FWYML_UNVERIFIED_ARTIFACT",
-        severity: "warning",
-        message: `tool ${tool.id} skipped; ${bin} is not on PATH`,
-        id: tool.id,
-      });
-      continue;
-    }
-    if (bin === "npx" && tool.argv[1] && !existsSync(join(cwd, "node_modules", tool.argv[1]))) {
-      diagnostics.push({
-        code: "FWYML_UNVERIFIED_ARTIFACT",
-        severity: "warning",
-        message: `tool ${tool.id} skipped; package is not installed`,
-        id: tool.id,
-      });
-      continue;
-    }
-    const result = spawnSync(tool.argv[0], tool.argv.slice(1), { cwd, encoding: "utf8" });
-    runs.push({
-      id: tool.id,
-      argv: tool.argv,
-      status: result.status,
-      stdout: result.stdout,
-      stderr: result.stderr,
-    });
-    if (result.status !== 0) {
+    const toolCwd = tool.cwd ? (isAbsolute(tool.cwd) ? tool.cwd : resolve(cwd, tool.cwd)) : cwd;
+    if (!existsSync(toolCwd)) {
       diagnostics.push({
         code: "FWYML_TOOL_FAILED",
         severity: "error",
-        message: `tool ${tool.id} exited ${result.status}`,
+        message: `tool ${tool.id} working directory does not exist: ${toolCwd}`,
         id: tool.id,
       });
+      continue;
     }
+    if (tool.prepare && !run(`${tool.id}:prepare`, tool.prepare, toolCwd, runs, diagnostics)) {
+      continue;
+    }
+    run(tool.id, tool.argv, toolCwd, runs, diagnostics);
   }
   return { runs, diagnostics };
 }

@@ -2,7 +2,55 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { Diagnostic, LockFile, Manifest, Resolution } from "./types.js";
 import { leftoverOwned } from "./materialize.js";
-import { readText } from "./io.js";
+import { readText, readYaml, semanticDigest, sha256 } from "./io.js";
+import { assertLock } from "./schema.js";
+
+function comparableLock(lock: LockFile): unknown {
+  return {
+    schemaVersion: lock.schemaVersion,
+    kind: lock.kind,
+    product: lock.product,
+    registrySnapshot: lock.registrySnapshot,
+    manifestDigest: lock.manifestDigest,
+    registryDigest: lock.registryDigest,
+    planDigest: lock.planDigest,
+    records: lock.records,
+    absent: lock.absent,
+    ownership: lock.ownership,
+    dependencies: lock.dependencies,
+  };
+}
+
+export function verifyPersistedLock(outDir: string, expected: LockFile): Diagnostic[] {
+  const path = join(outDir, "fw.lock.yaml");
+  if (!existsSync(path)) {
+    return [{
+      code: "FWYML_LOCK_MISMATCH",
+      severity: "error",
+      message: "persisted lock is missing; run sync before verification",
+      remediation: "run-sync",
+    }];
+  }
+  try {
+    const persisted = assertLock(readYaml<LockFile>(path));
+    if (semanticDigest(comparableLock(persisted)) === semanticDigest(comparableLock(expected))) {
+      return [];
+    }
+  } catch {
+    return [{
+      code: "FWYML_LOCK_MISMATCH",
+      severity: "error",
+      message: "persisted lock is invalid",
+      remediation: "run-sync",
+    }];
+  }
+  return [{
+    code: "FWYML_LOCK_MISMATCH",
+    severity: "error",
+    message: "persisted lock does not match the manifest, registry snapshot, or materialization plan",
+    remediation: "run-sync-after-reviewing-registry-or-manifest-changes",
+  }];
+}
 
 export function verifyTree(options: {
   outDir: string;
@@ -12,6 +60,26 @@ export function verifyTree(options: {
   strict: boolean;
 }): Diagnostic[] {
   const diagnostics = [...options.resolution.diagnostics];
+  const persistedPath = join(options.outDir, "fw.lock.yaml");
+  if (existsSync(persistedPath)) {
+    try {
+      const persisted = assertLock(readYaml<LockFile>(persistedPath));
+      for (const [dest, digest] of Object.entries(persisted.ownedOutputDigests ?? {})) {
+        const path = join(options.outDir, dest);
+        if (existsSync(path) && sha256(readText(path)) !== digest) {
+          diagnostics.push({
+            code: "FWYML_LOCK_MISMATCH",
+            severity: "error",
+            message: `owned output differs from the lock: ${dest}`,
+            id: dest,
+            remediation: "restore-the-output-or-run-sync-after-reviewing-the-change",
+          });
+        }
+      }
+    } catch {
+      // verifyPersistedLock reports the invalid lock with a stable diagnostic.
+    }
+  }
   const pkgPath = join(options.outDir, "package.json");
   if (existsSync(pkgPath)) {
     const pkg = JSON.parse(readText(pkgPath)) as {

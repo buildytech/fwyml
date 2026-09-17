@@ -5,12 +5,12 @@ import { contextPack } from "./context.js";
 import { EXIT_FAIL, EXIT_LOCK, EXIT_OK, EXIT_USAGE, EXIT_VERIFY } from "./exit.js";
 import { readYaml, writeYaml } from "./io.js";
 import { materialize } from "./materialize.js";
-import { loadRegistries } from "./registry.js";
+import { loadRegistries, RegistryError } from "./registry.js";
 import { hasError, resolveGraph, toLock } from "./resolve.js";
-import { assertManifest, validateManifest } from "./schema.js";
+import { assertLock, assertManifest, validateManifest } from "./schema.js";
 import type { LockFile, Manifest } from "./types.js";
 import { runSelectedTools } from "./tools.js";
-import { verifyTree } from "./verify.js";
+import { verifyPersistedLock, verifyTree } from "./verify.js";
 import { VERSION } from "./version.js";
 
 type Flags = {
@@ -101,8 +101,16 @@ function compile(flags: Flags) {
     cliRegistry: flags.registry,
   });
   const resolution = resolveGraph(manifest, loaded);
-  const lock = toLock(resolution, loaded.snapshotId);
+  const lock = toLock(resolution, manifest, loaded.snapshotId, loaded.snapshotDigest);
   return { manifest, resolution, lock };
+}
+
+function hasBlockingResolutionError(diagnostics: ReturnType<typeof resolveGraph>["diagnostics"]): boolean {
+  return hasError(diagnostics, [
+    "FWYML_CONTRACT_INCOMPATIBLE",
+    "FWYML_ABSENCE_VIOLATION",
+    "FWYML_DEPENDENCY_CONFLICT",
+  ]);
 }
 
 function emit(flags: Flags, payload: unknown, text: string): void {
@@ -148,9 +156,7 @@ function main(): number {
         compiled,
         `${compiled.resolution.product} nodes=${compiled.resolution.nodes.length} absent=${compiled.resolution.absent.join(",")}\n`,
       );
-      return hasError(compiled.resolution.diagnostics.filter((item) => item.code === "FWYML_CONTRACT_INCOMPATIBLE" || item.code === "FWYML_ABSENCE_VIOLATION"))
-        ? EXIT_FAIL
-        : EXIT_OK;
+      return hasBlockingResolutionError(compiled.resolution.diagnostics) ? EXIT_FAIL : EXIT_OK;
     }
 
     if (command === "sync") {
@@ -159,7 +165,13 @@ function main(): number {
         emit(flags, payload, `dry-run files=${compiled.resolution.plan.files.length}\n`);
         return EXIT_OK;
       }
-      const prior = existsSync(resolve(outDir, "fw.lock.yaml")) ? readYaml<LockFile>(resolve(outDir, "fw.lock.yaml")) : undefined;
+      if (hasBlockingResolutionError(compiled.resolution.diagnostics)) {
+        emit(flags, payload, "sync refused because the composition is invalid\n");
+        return EXIT_FAIL;
+      }
+      const prior = existsSync(resolve(outDir, "fw.lock.yaml"))
+        ? assertLock(readYaml<LockFile>(resolve(outDir, "fw.lock.yaml")))
+        : undefined;
       const conflicts = materialize(outDir, compiled.resolution, compiled.lock, prior, compiled.manifest);
       if (conflicts.length > 0) {
         emit(flags, { conflicts }, `owned file conflicts:\n${conflicts.join("\n")}\n`);
@@ -170,6 +182,11 @@ function main(): number {
     }
 
     if (command === "generate") {
+      const lockDiagnostics = verifyPersistedLock(outDir, compiled.lock);
+      if (lockDiagnostics.some((item) => item.severity === "error")) {
+        emit(flags, { diagnostics: lockDiagnostics, ok: false }, `${lockDiagnostics.map((item) => item.code).join("\n")}\n`);
+        return EXIT_VERIFY;
+      }
       const tools = runSelectedTools(compiled.resolution, outDir, "generate");
       const errors = tools.diagnostics.filter((item) => item.severity === "error");
       emit(
@@ -190,14 +207,20 @@ function main(): number {
     }
 
     if (command === "verify") {
-      const diagnostics = verifyTree({
+      const diagnostics = [
+        ...verifyPersistedLock(outDir, compiled.lock),
+        ...verifyTree({
         outDir,
         manifest: compiled.manifest,
         resolution: compiled.resolution,
         lock: compiled.lock,
         strict: flags.strict,
-      });
-      const tools = runSelectedTools(compiled.resolution, outDir, "verify");
+        }),
+      ];
+      const canRunTools = !diagnostics.some((item) => item.severity === "error");
+      const tools = canRunTools
+        ? runSelectedTools(compiled.resolution, outDir, "verify")
+        : { runs: [], diagnostics: [] };
       diagnostics.push(...tools.diagnostics);
       const errors = diagnostics.filter((item) => item.severity === "error");
       emit(
@@ -211,6 +234,11 @@ function main(): number {
     process.stderr.write(`unknown command ${command}\n${usage()}`);
     return EXIT_USAGE;
   } catch (error) {
+    if (error instanceof RegistryError) {
+      const diagnostics = [{ code: error.code, severity: "error", message: error.message }];
+      emit(flags, { diagnostics, ok: false }, `${error.code}: ${error.message}\n`);
+      return EXIT_FAIL;
+    }
     process.stderr.write(`${error instanceof Error ? error.message : error}\n`);
     return EXIT_FAIL;
   }

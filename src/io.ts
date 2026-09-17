@@ -13,7 +13,11 @@ export function readYaml<T>(path: string): T {
 
 export function writeYaml(path: string, value: unknown): void {
   mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, stringifyYaml(value, { lineWidth: 0 }));
+  writeFileSync(path, renderYaml(value));
+}
+
+export function renderYaml(value: unknown): string {
+  return stringifyYaml(value, { lineWidth: 0 });
 }
 
 export function writeJson(path: string, value: unknown): void {
@@ -28,6 +32,24 @@ export function writeText(path: string, value: string): void {
 
 export function sha256(value: string | Buffer): string {
   return `sha256:${createHash("sha256").update(value).digest("hex")}`;
+}
+
+function sortValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortValue);
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, child]) => [key, sortValue(child)]),
+    );
+  }
+  return value;
+}
+
+export function semanticDigest(value: unknown): string {
+  return sha256(JSON.stringify(sortValue(value)));
 }
 
 export function fileDigest(path: string): string {

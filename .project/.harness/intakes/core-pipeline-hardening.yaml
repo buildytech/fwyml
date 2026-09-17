@@ -1,0 +1,116 @@
+schemaVersion: "0.1"
+kind: product-evidence-intake
+
+source:
+  id: vsa-fixture-products
+  repository: local-fixtures
+  localPath: .project/.vsa-ide
+  branch: ""
+  commit: ""
+  packageVersions: {}
+  workingTree: unknown
+  upstreamFreshness: unknown
+  canonicalFor:
+    - composition-resolution
+    - physical-absence
+    - draft-provenance
+
+scope:
+  requested: Strengthen framework-only compatibility, lock, and materialization invariants for independent products.
+  surfaces:
+    - schemas
+    - registry
+    - resolver
+    - materializer
+    - verifier
+    - tests
+  excluded:
+    - source-product implementation
+    - product-specific registry ids
+    - adapter/runtime dependencies
+
+evidence:
+  rules:
+    - .project/.harness/policy.yaml
+    - .project/.harness/workflow.md
+    - .project/.harness/drift.md
+  manifests:
+    - .project/.vsa-ide/manifests
+  contracts:
+    - schemas/product-manifest.schema.json
+    - schemas/registry-envelope.schema.json
+    - schemas/lock.schema.json
+  validators:
+    - src/verify.ts
+    - src/tools.ts
+  tests:
+    - test/fwyml.test.mjs
+  decisions: []
+
+candidates:
+  contracts:
+    - compatibility selectors are registry features, platforms, runtimes, and explicit contract ranges
+    - persisted lock must bind the semantic manifest, registry snapshot, and materialization plan
+    - removed owned outputs require a recorded digest before deletion
+  registryRecords:
+    - registry metadata has an immutable content digest derived from loaded documents
+  conformanceScenarios:
+    - lock replay rejects changed manifest, registry, or materialization plan
+    - capability removal deletes only unchanged owned outputs
+  validators: []
+  adapters: []
+  slices: []
+  productOnly: []
+  discarded:
+    - product or stack-specific resolver behavior
+
+impact:
+  contractVersion: compatible-v0alpha1-extension
+  fw:
+    - extend schemas and composition semantics
+    - extend conformance scenarios
+  registry:
+    - add neutral feature declarations to draft fixture records
+  fwyml:
+    - validate registry and lock envelopes
+    - enforce compatibility requirements
+    - bind verify to the persisted lock
+    - reconcile owned-file removal transactionally
+  migrations:
+    - locks without semantic digests are stale and must be resynced
+
+verification:
+  sourceCommands: []
+  fwCommands:
+    - schema validation
+    - conformance scenario coverage
+  fwymlCommands:
+    - bun run test
+    - bun run build
+  fixtureProducts:
+    - workshop-templ
+    - workshop-svelte-agent
+    - assistant-solid-browser
+  physicalAbsenceChecks:
+    - dropped selected output is deleted only when unchanged
+    - modified formerly owned output causes a conflict
+  driftCases:
+    - stale-lock
+    - unsatisfied-required-feature
+    - forbidden-selected-feature
+
+provenance:
+  publicSurfaceDigests: {}
+  artifactIntegrity: {}
+  conformanceResults: []
+
+decision:
+  status: approved-for-draft
+  blockers:
+    - baseline Bun test runner timeout; use the declared Node test script for gate evidence
+  nonGoals:
+    - registry publication service
+    - package/version catalogue
+    - product migration
+  notes:
+    - Version selection remains registry and lock data; the compiler evaluates only generic compatibility semantics.

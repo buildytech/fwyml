@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
 import type { Diagnostic, Manifest, MaterializePlan, RegistryRecord, Resolution, ResolvedNode } from "./types.js";
+import { semanticDigest } from "./io.js";
 import { findRecord, type LoadedRegistry } from "./registry.js";
 
 function sourceRef(record: RegistryRecord): string {
@@ -8,7 +9,8 @@ function sourceRef(record: RegistryRecord): string {
   if (!src) {
     return record.version;
   }
-  return src.package ?? src.module ?? src.path ?? src.repository ?? src.kind;
+  const identity = src.package ?? src.module ?? src.repository ?? src.path ?? src.kind;
+  return src.commit ? `${identity}@${src.commit}` : `${identity}@${src.ref ?? record.version}`;
 }
 
 function artifactRoot(record: RegistryRecord, roots: string[]): string | undefined {
@@ -37,6 +39,81 @@ function addDiagnostic(list: Diagnostic[], item: Diagnostic): void {
 
 function collectOwned(record: RegistryRecord): string[] {
   return [...(record.ownedFiles ?? []), ...(record.removal?.ownedFiles ?? [])];
+}
+
+type Version = readonly [number, number, number];
+
+function contractVersion(contract?: string): { id: string; version: Version } | undefined {
+  const match = contract?.match(/^(.+)@(\d+)(?:\.(\d+))?(?:\.(\d+))?$/);
+  if (!match) {
+    return undefined;
+  }
+  return {
+    id: match[1],
+    version: [Number(match[2]), Number(match[3] ?? 0), Number(match[4] ?? 0)],
+  };
+}
+
+function compareVersion(left: Version, right: Version): number {
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) {
+      return left[index] - right[index];
+    }
+  }
+  return 0;
+}
+
+function parseVersion(value: string): Version | undefined {
+  const match = value.match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?$/);
+  return match ? [Number(match[1]), Number(match[2] ?? 0), Number(match[3] ?? 0)] : undefined;
+}
+
+function satisfiesVersionRange(version: Version, range: string): boolean {
+  for (const clause of range.trim().split(/\s+/)) {
+    const match = clause.match(/^(>=|<=|>|<|=|\^|~)?(\d+(?:\.\d+){0,2})$/);
+    if (!match) {
+      return false;
+    }
+    const expected = parseVersion(match[2]);
+    if (!expected) {
+      return false;
+    }
+    const comparison = compareVersion(version, expected);
+    const operator = match[1] ?? "=";
+    const accepted =
+      operator === ">=" ? comparison >= 0
+        : operator === "<=" ? comparison <= 0
+          : operator === ">" ? comparison > 0
+            : operator === "<" ? comparison < 0
+              : operator === "^" ? version[0] === expected[0] && comparison >= 0
+                : operator === "~" ? version[0] === expected[0] && version[1] === expected[1] && comparison >= 0
+                  : comparison === 0;
+    if (!accepted) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function satisfiesContractRange(contract: string | undefined, capability: string, range: string): boolean {
+  const parsed = contractVersion(contract);
+  return Boolean(parsed && parsed.id === capability && satisfiesVersionRange(parsed.version, range));
+}
+
+function selectedTerms(nodes: ResolvedNode[]): Set<string> {
+  const terms = new Set<string>();
+  for (const { record } of nodes) {
+    terms.add(record.id);
+    for (const term of [
+      ...(record.provides ?? []),
+      ...(record.features ?? []),
+      ...(record.compatibility?.platforms ?? []),
+      ...(record.compatibility?.runtimes ?? []),
+    ]) {
+      terms.add(term);
+    }
+  }
+  return terms;
 }
 
 export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry): Resolution {
@@ -127,6 +204,15 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry): Resolu
         id: choice.use,
       });
     }
+    if (choice.contractRange && !satisfiesContractRange(record?.contract, capability, choice.contractRange)) {
+      addDiagnostic(diagnostics, {
+        code: "FWYML_CONTRACT_INCOMPATIBLE",
+        severity: "error",
+        message: `${choice.use} does not satisfy ${capability} contract range ${choice.contractRange}`,
+        id: choice.use,
+        remediation: "select-an-adapter-with-a-compatible-contract",
+      });
+    }
     visit(capability, `capability-record:${capability}`);
   }
 
@@ -162,8 +248,20 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry): Resolu
     visit(id, "quality");
   }
 
+  const terms = selectedTerms(nodes);
+  for (const required of manifest.constraints?.required ?? []) {
+    if (!terms.has(required)) {
+      addDiagnostic(diagnostics, {
+        code: "FWYML_CONTRACT_INCOMPATIBLE",
+        severity: "error",
+        message: `required compatibility term ${required} is not provided`,
+        id: required,
+        remediation: "select-an-adapter-that-declares-the-required-term",
+      });
+    }
+  }
   for (const forbidden of manifest.constraints?.forbidden ?? []) {
-    if (selected.has(forbidden) || providers.has(forbidden) || manifest.composition.capabilities[forbidden]) {
+    if (terms.has(forbidden) || manifest.composition.capabilities[forbidden]) {
       addDiagnostic(diagnostics, {
         code: "FWYML_ABSENCE_VIOLATION",
         severity: "error",
@@ -176,7 +274,7 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry): Resolu
   const known = [...loaded.records.values()].filter((record) => record.kind === "capability").map((record) => record.id);
   const absent = known.filter((id) => !providers.has(id) && !manifest.composition.capabilities[id]);
 
-  const plan = buildPlan(nodes, loaded.roots);
+  const plan = buildPlan(nodes, loaded.roots, diagnostics);
   return {
     product: manifest.metadata.name,
     nodes,
@@ -186,7 +284,7 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry): Resolu
   };
 }
 
-function buildPlan(nodes: ResolvedNode[], roots: string[]): MaterializePlan {
+function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnostic[]): MaterializePlan {
   const files: MaterializePlan["files"] = [];
   const npm: Record<string, string> = {};
   const npmDev: Record<string, string> = {};
@@ -197,6 +295,24 @@ function buildPlan(nodes: ResolvedNode[], roots: string[]): MaterializePlan {
   const tools: MaterializePlan["tools"] = [];
   const guidance: MaterializePlan["guidance"] = [];
   let local = false;
+  const dependencyVersions = new Map<string, string>();
+  const addDependencies = (target: Record<string, string>, additions: Record<string, string>) => {
+    for (const [name, version] of Object.entries(additions)) {
+      const previous = dependencyVersions.get(name);
+      if (previous && previous !== version) {
+        addDiagnostic(diagnostics, {
+          code: "FWYML_DEPENDENCY_CONFLICT",
+          severity: "error",
+          message: `dependency ${name} is required at both ${previous} and ${version}`,
+          id: name,
+          remediation: "select-compatible-record-versions",
+        });
+        continue;
+      }
+      dependencyVersions.set(name, version);
+      target[name] = version;
+    }
+  };
 
   for (const { record } of nodes) {
     const root = artifactRoot(record, roots);
@@ -210,9 +326,15 @@ function buildPlan(nodes: ResolvedNode[], roots: string[]): MaterializePlan {
         bucket.push({ dest, from, owner: record.id });
       }
     }
-    Object.assign(npm, record.npm?.dependencies ?? {});
-    Object.assign(npmDev, record.npm?.devDependencies ?? {});
+    addDependencies(npm, record.npm?.dependencies ?? {});
+    addDependencies(npmDev, record.npm?.devDependencies ?? {});
     Object.assign(scripts, record.npm?.scripts ?? {});
+    if (record.source?.kind === "npm" && record.source.package && record.source.ref) {
+      addDependencies(
+        record.source.install === "devDependency" ? npmDev : npm,
+        { [record.source.package]: record.source.ref },
+      );
+    }
     if (record.kind === "product-template" && record.go?.module) {
       goModule = record.go.module;
     } else if (record.go?.module && record.go.require) {
@@ -224,7 +346,14 @@ function buildPlan(nodes: ResolvedNode[], roots: string[]): MaterializePlan {
     if (record.kind === "validator" || record.kind === "generator") {
       const argv = record.command?.argv ?? [];
       if (argv.length > 0) {
-        tools.push({ id: record.id, argv, phase: record.command?.phase, outputs: record.command?.outputs });
+        tools.push({
+          id: record.id,
+          argv,
+          phase: record.command?.phase,
+          outputs: record.command?.outputs,
+          cwd: record.command?.cwd,
+          prepare: record.command?.prepare,
+        });
       }
     }
   }
@@ -241,13 +370,33 @@ function buildPlan(nodes: ResolvedNode[], roots: string[]): MaterializePlan {
   };
 }
 
-export function toLock(resolution: Resolution, snapshot: string): import("./types.js").LockFile {
+function planDigest(plan: MaterializePlan): string {
+  return semanticDigest({
+    files: plan.files.map(({ dest, owner }) => ({ dest, owner })),
+    npm: plan.npm,
+    npmDev: plan.npmDev,
+    scripts: plan.scripts,
+    go: plan.go,
+    tools: plan.tools,
+    guidance: plan.guidance.map(({ dest, owner }) => ({ dest, owner })),
+    local: plan.local,
+  });
+}
+
+export function toLock(
+  resolution: Resolution,
+  manifest: Manifest,
+  snapshot: string,
+  registryDigest: string,
+): import("./types.js").LockFile {
   const ownership: Record<string, string> = {};
   for (const file of [...resolution.plan.files, ...resolution.plan.guidance]) {
     ownership[file.dest] = file.owner;
   }
   ownership["package.json"] = "fwyml";
-  ownership["go.mod"] = "fwyml";
+  if (!ownership["go.mod"]) {
+    ownership["go.mod"] = "fwyml";
+  }
   ownership["compose/identity.go"] = "fwyml";
   ownership["fw.yaml"] = "fwyml";
   return {
@@ -255,6 +404,9 @@ export function toLock(resolution: Resolution, snapshot: string): import("./type
     kind: "Lock",
     product: resolution.product,
     registrySnapshot: snapshot,
+    manifestDigest: semanticDigest(manifest),
+    registryDigest,
+    planDigest: planDigest(resolution.plan),
     records: resolution.nodes.map(({ record }) => ({
       id: record.id,
       kind: record.kind,

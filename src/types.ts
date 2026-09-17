@@ -6,6 +6,7 @@ export type Diagnostic = {
   message: string;
   id?: string;
   remediation?: string;
+  details?: Record<string, string | boolean>;
 };
 
 export type Manifest = {
@@ -14,7 +15,7 @@ export type Manifest = {
   metadata: { name: string; description?: string };
   registries?: { id: string; source: string }[];
   composition: {
-    capabilities: Record<string, { use: string }>;
+    capabilities: Record<string, { use: string; contractRange?: string }>;
     slices?: string[];
   };
   quality?: { guidance?: string[]; validators?: string[] };
@@ -28,6 +29,7 @@ export type RegistryRecord = {
   contract?: string;
   contractRange?: string;
   provides?: string[];
+  features?: string[];
   requires?: string[];
   dependencies?: string[];
   conflicts?: string[];
@@ -47,10 +49,12 @@ export type RegistryRecord = {
     path?: string;
     repository?: string;
     commit?: string;
+    ref?: string;
     package?: string;
     module?: string;
     subpath?: string;
     portable?: boolean;
+    install?: "dependency" | "devDependency";
   };
   integrity?: { publicDigest?: string; outputDigest?: string };
   readiness?: "draft" | "verified" | "blocked";
@@ -103,7 +107,14 @@ export type MaterializePlan = {
   npmDev: Record<string, string>;
   scripts: Record<string, string>;
   go: { module?: string; require: Record<string, string>; replace: Record<string, string> };
-  tools: { id: string; argv: string[]; phase?: string; outputs?: string[] }[];
+  tools: {
+    id: string;
+    argv: string[];
+    phase?: string;
+    outputs?: string[];
+    cwd?: string;
+    prepare?: string[];
+  }[];
   guidance: { dest: string; from: string; owner: string }[];
   local: boolean;
 };
@@ -113,6 +124,9 @@ export type LockFile = {
   kind: string;
   product: string;
   registrySnapshot: string;
+  manifestDigest?: string;
+  registryDigest?: string;
+  planDigest?: string;
   records: {
     id: string;
     kind: string;
@@ -128,6 +142,7 @@ export type LockFile = {
   }[];
   absent: string[];
   ownership: Record<string, string>;
+  ownedOutputDigests?: Record<string, string>;
   dependencies: { npm: Record<string, string>; go: Record<string, string> };
   diagnostics: Diagnostic[];
 };

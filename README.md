@@ -36,6 +36,20 @@ Registry precedence: `--registry`, then manifest `registries`, then the
 bundled snapshot. `FWYML_VSA_REGISTRY` may point at a local draft index.
 Network refresh is never implicit.
 
+## Compatibility and locks
+
+An adapter declares a contract and may declare neutral compatibility terms:
+features, platforms, and runtimes. A manifest may require or forbid those
+terms and may attach a contract range to a selected capability. Resolution
+uses those declarations only; it has no product, package, or stack-name
+branches.
+
+`sync` writes a lock that binds the semantic manifest, loaded registry
+documents, and materialization plan with SHA-256 digests. `verify` first
+replays that lock; it does not run external validators when replay fails.
+When a selection is removed, `sync` deletes only unchanged outputs that the
+previous lock owned. A changed output is reported as a conflict.
+
 ## Exit codes
 
 | Code | Meaning |
