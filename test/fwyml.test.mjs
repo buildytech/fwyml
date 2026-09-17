@@ -253,6 +253,39 @@ composition:
   rmSync(dir, { recursive: true, force: true });
 });
 
+test("missing selected artifact sources block planning and sync", () => {
+  const dir = mkdtempSync(join(tmpdir(), "fwyml-source-"));
+  const registry = join(dir, "registry.yaml");
+  const manifest = join(dir, "fw.yaml");
+  writeFileSync(registry, `schemaVersion: fw.buildy.tech/registry/v0alpha1
+kind: Registry
+records:
+  - id: source-adapter
+    kind: adapter
+    version: "1"
+    provides: [source]
+    source:
+      kind: files
+      path: missing-artifact
+    ownedFiles:
+      - src/source.ts
+`);
+  writeFileSync(manifest, `schemaVersion: fw.buildy.tech/v0alpha1
+kind: Product
+metadata:
+  name: source-fixture
+composition:
+  capabilities:
+    source: { use: source-adapter }
+`);
+  const resolved = run(["--json", "resolve", "--manifest", manifest, "--registry", registry]);
+  assert.equal(resolved.status, 1, resolved.stderr);
+  assert.ok(JSON.parse(resolved.stdout).resolution.diagnostics.some((row) => row.code === "FWYML_SOURCE_MISSING"));
+  const synced = run(["--json", "sync", "--manifest", manifest, "--registry", registry, "--out", join(dir, "product")]);
+  assert.equal(synced.status, 1, synced.stderr);
+  rmSync(dir, { recursive: true, force: true });
+});
+
 test("registered tool preparation runs before the declared command", () => {
   const dir = mkdtempSync(join(tmpdir(), "fwyml-tools-"));
   const result = runSelectedTools({
