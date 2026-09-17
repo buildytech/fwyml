@@ -1,0 +1,196 @@
+schemaVersion: "0.1"
+kind: product-evidence-intake
+
+source:
+  id: ide-vsa
+  repository: buildytech/fwyml
+  localPath: .project/.vsa-ide
+  branch: main
+  commit: ff24ac33f6828d9b1e1eea8e2e4182268124121b
+  workingTree: dirty
+  upstreamFreshness: unknown
+  canonicalFor:
+    - framework-extraction-plan
+
+scope:
+  requested: materialize three physically distinct Wails 3 products through npx fwyml
+  surfaces:
+    - FW contracts and registry
+    - fwyml CLI
+    - local artifact staging
+    - Wails 3 composition
+    - Templ, Svelte, and Solid UI runtimes
+    - agent chat
+    - native WebView2 browser
+    - validators and agent guidance
+  excluded:
+    - rewriting source products
+    - publishing packages
+    - implementing the dashboard
+    - pretending unfinished agent or Templ integrations are ready
+
+evidence:
+  repositories:
+    - id: ide-buildy
+      repository: https://github.com/buildy-ui/ide.git
+      branch: main
+      commit: fda6faf8d6493aa1bd82d4083b1de8a565da32a3
+      workingTree: clean
+      upstreamFreshness: unknown
+      surfaces:
+        - go.mod
+        - Taskfile.yml
+        - main.go
+        - AGENTS.md
+        - .cursor/rules
+        - internal/workspace
+        - internal/browse
+        - packages/solid
+        - packages/agent-contract
+        - src/components/widgets/ChatPanel.solid.tsx
+        - src/components/widgets/BrowserTab.solid.tsx
+    - id: contently
+      repository: https://github.com/ui8kit/contently.git
+      branch: main
+      commit: 8fe6c2d0cd59aa9ab18b530d73bec9d593337a82
+      workingTree: clean
+      upstreamFreshness: unknown
+      canonicalFor:
+        - wails-svelte-composition
+        - svelte-dx
+        - ui8px-retag
+      surfaces:
+        - go.mod
+        - package.json
+        - Taskfile.yml
+        - .cursor/rules
+        - src/kit
+    - id: sveltecms
+      repository: https://github.com/alexy-os/-SvelteCMS.git
+      branch: svelte-cms
+      commit: 6c2ab57ae809a7b64722421330701a6d75262fb1
+      workingTree: clean
+      upstreamFreshness: unknown
+      canonicalFor:
+        - spec-driven-svelte-admin
+        - repository-owned-transport
+        - ui8kit-composition
+    - id: fw
+      repository: https://github.com/buildytech/fw.git
+      branch: main
+      commit: 03b273502b3ad581238032b9fef17cc5b659778e
+      workingTree: clean
+      upstreamFreshness: unknown
+      surfaces:
+        - README.md
+        - .project/architecture.md
+        - .project/capabilities.md
+
+candidates:
+  contracts:
+    - host
+    - ui
+    - workspace
+    - editor
+    - explorer
+    - vcs
+    - agent
+    - browse
+    - delivery
+  registryKinds:
+    - adapter
+    - generator
+    - validator
+    - guidance
+    - vertical-slice
+    - product-template
+  conformanceScenarios:
+    - wails-window-starts-and-stops
+    - selected-ui-runtime-renders
+    - workspace-revision-write
+    - agent-event-stream-normalizes
+    - browser-session-isolated-and-disposed
+    - portable-layout-remains-beside-executable
+    - unselected-capability-is-absent
+  validators:
+    - go-test
+    - go-vet
+    - wails-bindings
+    - wails-build
+    - templ-generate
+    - svelte-check
+    - typescript-check
+    - ui8kit-codegen
+    - ui8px
+    - retag
+    - aria
+    - locale
+  adapters:
+    - host-wails3-go
+    - ui-ui8kit-templ
+    - ui-ui8kit-svelte
+    - ui-ui8kit-solid
+    - workspace-fs-go
+    - explorer-workspace-tree
+    - vcs-git-cli
+    - editor-editory-svelte
+    - agent-event-contract
+    - agent-runtime-cursor-node
+    - browse-webview2-windows
+    - delivery-portable-windows
+  slices:
+    - workshop-shell
+    - agent-chat-surface
+    - browser-surface
+    - editor-surface
+    - explorer-surface
+
+impact:
+  contractVersion: initial-draft
+  fw:
+    - correct ownership so the CLI belongs only to fwyml
+    - define registry kinds beyond capabilities
+    - define composition and exclusion semantics for vertical slices
+    - define guidance and external validator records
+    - define local and immutable artifact provenance
+  registry:
+    - register local draft records for extracted/generated artifacts
+    - preserve source refs and public contract digests
+  fwyml:
+    - add an executable bin
+    - load explicit file registries and bundled snapshots
+    - resolve dependencies, conflicts, and exclusions
+    - materialize npm, Go, generated, copied, and rule-pack artifacts
+    - emit lock, context pack, CI hints, and absence checks
+  migrations: []
+
+blockers:
+  - id: FW-OWNERSHIP
+    detail: FW planning docs still assign CLI and generator commands to fw
+  - id: FY-EMPTY
+    detail: fwyml currently publishes documentation only and has no bin
+  - id: HOST-COUPLED
+    detail: Wails host, menu, services, and product identity are not extracted
+  - id: BROWSE-INTERNAL
+    detail: browser implementation is under a Go internal package and cannot be imported by a new product
+  - id: SVELTE-KIT-LOCAL
+    detail: ContentlY Svelte primitives are generated in the product tree, not released as a selected package
+  - id: TEMPL-SHELL
+    detail: generated Templ primitives exist, but no Wails 3 Templ application shell or interaction contract is proven
+  - id: TEMPL-EDITOR
+    detail: a full code editor is browser-side; pure Go Templ does not currently provide a CodeMirror-equivalent adapter
+  - id: AGENT-RUNTIME
+    detail: the event contract and chat surface exist, but IDE BuildY does not ship the planned agent sidecar
+  - id: CHAT-SLICE
+    detail: chat UI and product session state are not extracted as a reusable slice
+  - id: BROWSER-SLICE
+    detail: native browser backend and Solid presentation glue are coupled to IDE paths and bindings
+
+decision:
+  status: planned
+  nonGoals:
+    - feature flags inside one reference IDE
+    - copying all UI runtimes into a user product
+    - reimplementing ui8kit, ui8px, Retag, Wails, Templ, Svelte, or Solid in fwyml
+    - claiming remote freshness without an explicit registry refresh
+

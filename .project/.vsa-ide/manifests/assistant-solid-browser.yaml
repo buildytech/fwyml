@@ -1,0 +1,63 @@
+schemaVersion: fw.buildy.tech/v0alpha1
+kind: Product
+
+metadata:
+  name: assistant-solid-browser
+  description: Wails 3 Solid assistant with native browsing and no code workspace
+
+registries:
+  - id: local-vsa
+    source: ${FWYML_VSA_REGISTRY}
+
+composition:
+  capabilities:
+    host:
+      use: host-wails3-go
+    ui:
+      use: ui-ui8kit-solid
+    agent:
+      use: agent-runtime-cursor-node
+    browse:
+      use: browse-webview2-windows
+    delivery:
+      use: delivery-portable-windows
+  slices:
+    - agent-chat-surface
+    - browser-surface
+
+quality:
+  guidance:
+    - wails3-go
+    - solid-dx
+    - ui8kit-solid
+    - agent-event-contract
+    - browser-webview2
+    - ui8px
+    - retag
+    - accessibility
+  validators:
+    - go-test
+    - go-vet
+    - typescript-check
+    - wails-bindings
+    - ui8px
+    - retag
+    - aria
+    - wails-build
+
+constraints:
+  required:
+    - windows
+    - wails3
+    - go
+    - solid-js
+  forbidden:
+    - workspace
+    - editor
+    - explorer
+    - vcs
+    - languages
+    - terminal
+    - svelte
+    - templ
+

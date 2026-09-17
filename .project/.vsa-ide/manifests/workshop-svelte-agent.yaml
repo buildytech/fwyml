@@ -1,0 +1,66 @@
+schemaVersion: fw.buildy.tech/v0alpha1
+kind: Product
+
+metadata:
+  name: workshop-svelte-agent
+  description: Wails 3 Svelte workshop with EditorY and agent chat, without browsing
+
+registries:
+  - id: local-vsa
+    source: ${FWYML_VSA_REGISTRY}
+
+composition:
+  capabilities:
+    host:
+      use: host-wails3-go
+    ui:
+      use: ui-ui8kit-svelte
+    workspace:
+      use: workspace-fs-go
+    editor:
+      use: editor-editory-svelte
+    explorer:
+      use: explorer-workspace-tree
+    vcs:
+      use: vcs-git-cli
+    agent:
+      use: agent-runtime-cursor-node
+    delivery:
+      use: delivery-portable-windows
+  slices:
+    - workshop-shell
+    - editor-surface
+    - explorer-surface
+    - agent-chat-surface
+
+quality:
+  guidance:
+    - wails3-go
+    - svelte5-dx
+    - ui8kit-svelte
+    - editory-svelte
+    - ui8px
+    - retag
+    - accessibility
+  validators:
+    - go-test
+    - go-vet
+    - svelte-check
+    - wails-bindings
+    - ui8px
+    - retag
+    - aria
+    - wails-build
+
+constraints:
+  required:
+    - windows
+    - wails3
+    - go
+    - svelte5
+  forbidden:
+    - browse
+    - webview2-browser
+    - solid-js
+    - templ
+
