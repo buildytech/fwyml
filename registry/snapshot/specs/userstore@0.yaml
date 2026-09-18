@@ -1,0 +1,24 @@
+id: userstore
+contract: userstore@0
+kind: capability
+obligations:
+  dtos:
+    - preferences JSON
+    - recent workspace labels (opaque ids)
+    - recovery buffers
+    - session layout
+  operations:
+    - load and save preferences
+    - remember and reopen recent workspaces
+    - load and save crash-recovery buffers
+    - load and save workspace layout
+  invariants:
+    - recent entries never expose absolute host paths to the UI
+    - recovery is scoped to the current workspace key when attached
+    - adapters persist beside the portable application root when delivery is selected
+  nonObligations:
+    - does not own workspace file IO
+    - does not require a cloud account
+  conformance:
+    - userstore-session-lifetime
+readiness: draft

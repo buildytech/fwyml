@@ -6,43 +6,65 @@ metadata:
 records:
   - id: ui8kit-codegen
     kind: generator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     source:
-      kind: npm
-      package: "@ui8kit/codegen"
-      ref: "0.1.0"
+      kind: none
+    notes: npm @ui8kit/codegen is 404. Use git clone /workspace/_fwyml-workspace/ui8kit-codegen (generated/). Restore npm
+      pin when published. fwyml must not branch on runtime names.
     command:
-      argv: ["npx", "@ui8kit/codegen", "generate", "--runtime", "${runtime}"]
+      argv:
+        - node
+        - -e
+        - "console.log('ui8kit-codegen: use git clone generated/; npm package unpublished')"
       phase: generate
-      exit: "zero-on-success"
-    notes: Runtime is taken from the selected ui adapter. fwyml must not branch on templ, svelte, or solid by name.
+      exit: zero-on-success
   - id: ui8px
     kind: validator
-    version: "0.2.4"
+    version: 0.2.4
     readiness: draft
     source:
       kind: npm
       package: ui8px
-      ref: "0.2.4"
+      ref: 0.2.4
       install: devDependency
+      path: ../artifacts/ui8px
+    ownedFiles:
+      - scripts/ui8px-prepare.mjs
+      - .ui8px/policy/patterns.json
+      - .ui8px/policy/allowed.json
+      - .ui8px/policy/groups.json
+      - .ui8px/policy/denied.json
+      - .ui8px/policy/scopes.json
+      - .ui8px/scan/.gitignore
     command:
-      argv: ["npx", "ui8px", "validate", "patterns", ".ui8px/scan"]
-      prepare: ["node", "scripts/ui8px-prepare.mjs"]
-      inputs: [".ui8px/policy", ".ui8px/scan"]
-      exit: "zero-on-success"
+      argv:
+        - npx
+        - ui8px
+        - validate
+        - patterns
+        - .ui8px/scan
+      prepare:
+        - node
+        - scripts/ui8px-prepare.mjs
+      inputs:
+        - .ui8px/policy
+        - .ui8px/scan
+      exit: zero-on-success
   - id: retag
     kind: validator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     source:
-      kind: npm
-      package: "@ui8kit/retag"
-      ref: "0.0.0-draft"
+      kind: none
     command:
-      argv: ["npx", "@ui8kit/retag", "validate"]
-      exit: "zero-on-success"
-    notes: Rule packs are guidance records. FW and fwyml do not reimplement checks.
+      argv:
+        - npx
+        - "@ui8kit/retag"
+        - validate
+      exit: zero-on-success
+    notes: "@ui8kit/retag@0.0.0-draft is unpublished (npm 404). Pin removed so npm install can proceed; restore package+ref
+      when a real version exists. Rule packs stay in guidance records."
   - id: wails
     kind: validator
     version: "3"
@@ -50,74 +72,111 @@ records:
     source:
       kind: none
     command:
-      argv: ["wails3", "task", "build"]
-      prepare: ["wails3", "generate", "bindings"]
+      argv:
+        - wails3
+        - task
+        - build
+      prepare:
+        - wails3
+        - generate
+        - bindings
       phase: pack
-      exit: "zero-on-success"
+      exit: zero-on-success
   - id: templ-generate
     kind: validator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     command:
-      argv: ["templ", "generate"]
+      argv:
+        - templ
+        - generate
       phase: generate
-      exit: "zero-on-success"
+      exit: zero-on-success
   - id: svelte-check
     kind: validator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     command:
-      argv: ["npx", "svelte-check"]
-      exit: "zero-on-success"
+      argv:
+        - npx
+        - svelte-check
+      exit: zero-on-success
   - id: typescript-check
     kind: validator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     command:
-      argv: ["npx", "tsc", "--noEmit"]
-      exit: "zero-on-success"
+      argv:
+        - npx
+        - tsc
+        - --noEmit
+      exit: zero-on-success
   - id: go-test
     kind: validator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     command:
-      argv: ["go", "test", "./..."]
-      exit: "zero-on-success"
+      argv:
+        - go
+        - test
+        - ./...
+      exit: zero-on-success
   - id: go-vet
     kind: validator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     command:
-      argv: ["go", "vet", "./..."]
-      exit: "zero-on-success"
+      argv:
+        - go
+        - vet
+        - ./...
+      exit: zero-on-success
   - id: aria
     kind: validator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     command:
-      argv: ["npx", "ui8px", "validate", "aria"]
-      exit: "zero-on-success"
+      argv:
+        - npx
+        - ui8px
+        - validate
+        - aria
+      exit: zero-on-success
   - id: locale
     kind: validator
-    version: "0.0.0-draft"
+    version: 0.0.0-draft
     readiness: draft
     command:
-      argv: ["node", "scripts/validate-locale.mjs"]
-      exit: "zero-on-success"
+      argv:
+        - node
+        - scripts/validate-locale.mjs
+      exit: zero-on-success
   - id: wails-bindings
     kind: validator
     version: "3"
     readiness: draft
     command:
-      argv: ["wails3", "generate", "bindings", "-ts"]
+      argv:
+        - wails3
+        - generate
+        - bindings
+        - -ts
+        - -names
       phase: generate
-      outputs: ["frontend/bindings"]
-      exit: "zero-on-success"
+      outputs:
+        - frontend/bindings
+      exit: zero-on-success
+    notes: >-
+      Required post-sync generate step. Solid host.ts / workbench.ts import compose.* ByName bindings.
+      Do not commit generated TS as hand-owned product sources; regenerate into frontend/bindings.
   - id: wails-build
     kind: validator
     version: "3"
     readiness: draft
     command:
-      argv: ["wails3", "task", "build"]
+      argv:
+        - wails3
+        - task
+        - build
       phase: pack
-      exit: "zero-on-success"
+      exit: zero-on-success

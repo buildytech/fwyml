@@ -1,5 +1,7 @@
 browse-webview2-windows
 contract: browse@0
-extracted: session lifecycle only
-non-obligation: no full-browser DevTools, no device emulation
-source: https://github.com/buildy-ui/ide.git@fda6faf8d6493aa1bd82d4083b1de8a565da32a3
+platform: Windows-only (WebView2)
+linux: do NOT select as a live browser surface — BrowseService may register but UI must gate (webview2-windows-only)
+extracted: session lifecycle only (Navigate/Close hub)
+non-obligation: no full-browser DevTools, no device emulation, no fake WebView2 on Linux/gtk
+source: https://github.com/buildy-ui/ide.git

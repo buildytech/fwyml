@@ -1,0 +1,94 @@
+{
+  "tree-root": [
+    {
+      "id": "new-file",
+      "label": "New File…"
+    },
+    {
+      "id": "new-folder",
+      "label": "New Folder…"
+    },
+    {
+      "id": "restore",
+      "label": "Restore Last Deleted"
+    },
+    {
+      "id": "reveal",
+      "label": "Reveal in File Manager"
+    }
+  ],
+  "tree-folder": [
+    {
+      "id": "new-file",
+      "label": "New File…"
+    },
+    {
+      "id": "new-folder",
+      "label": "New Folder…"
+    },
+    {
+      "id": "rename",
+      "label": "Rename…"
+    },
+    {
+      "id": "trash",
+      "label": "Move to Trash"
+    },
+    {
+      "id": "copy-path",
+      "label": "Copy Relative Path"
+    },
+    {
+      "id": "reveal",
+      "label": "Reveal in File Manager"
+    }
+  ],
+  "tree-file": [
+    {
+      "id": "open",
+      "label": "Open"
+    },
+    {
+      "id": "rename",
+      "label": "Rename…"
+    },
+    {
+      "id": "trash",
+      "label": "Move to Trash"
+    },
+    {
+      "id": "copy-path",
+      "label": "Copy Relative Path"
+    },
+    {
+      "id": "reveal",
+      "label": "Reveal in File Manager"
+    }
+  ],
+  "tab": [
+    {
+      "id": "close",
+      "label": "Close"
+    },
+    {
+      "id": "close-others",
+      "label": "Close Others"
+    },
+    {
+      "id": "close-right",
+      "label": "Close to the Right"
+    },
+    {
+      "id": "close-all",
+      "label": "Close All"
+    },
+    {
+      "id": "reopen",
+      "label": "Reopen Closed Editor"
+    },
+    {
+      "id": "copy-path",
+      "label": "Copy Relative Path"
+    }
+  ]
+}

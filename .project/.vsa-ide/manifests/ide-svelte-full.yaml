@@ -1,0 +1,65 @@
+schemaVersion: fw.buildy.tech/v0alpha1
+kind: Product
+
+metadata:
+  name: ide-svelte-full
+  description: Wails 3 Svelte5 full IDE chrome (Files | Editor+Terminal | Agent) via fwyml composition + UI8Kit codegen Svelte bricks
+
+registries:
+  - id: local-vsa
+    source: ${FWYML_VSA_REGISTRY}
+
+composition:
+  capabilities:
+    host:
+      use: host-wails3-go
+    ui:
+      use: ui-ui8kit-svelte
+    workspace:
+      use: workspace-fs-go
+    editor:
+      use: editor-textarea-svelte
+    explorer:
+      use: explorer-workspace-tree
+    vcs:
+      use: vcs-git-cli
+    terminal:
+      use: terminal-memory-go
+    agent:
+      use: agent-runtime-cursor-node
+    delivery:
+      use: delivery-portable-windows
+  slices:
+    - workshop-shell-svelte
+    - explorer-surface-svelte
+    - editor-surface-svelte
+    - terminal-surface-svelte
+    - agent-chat-surface-svelte
+
+quality:
+  guidance:
+    - wails3-go
+    - svelte5-dx
+    - ui8kit-svelte
+    - ui8px
+    - accessibility
+  validators:
+    - go-test
+    - go-vet
+    - svelte-check
+    - wails-bindings
+    - ui8px
+    - aria
+    - wails-build
+
+constraints:
+  required:
+    - windows
+    - wails3
+    - go
+    - svelte5
+  forbidden:
+    - solid-js
+    - templ
+    - browse
+    - webview2-browser

@@ -1,3 +1,9 @@
 agent-runtime-cursor-node
 readiness: blocked
-the event contract exists; the Node sidecar does not
+exact missing artifacts (not present in ide/ either):
+  1. Node sidecar process implementing @cursor/sdk bridge
+  2. Go agentipc / sidecar supervisor (ide/docs: internal/agentipc — not in tree)
+  3. Auth/project gateway wiring behind packages/agent-contract AgentRuntime
+present: event contract (agent-event-contract) + honest AgentService Status/Prompt/Abort fail-closed
+do not claim online until sidecar binary + IPC extract land
+cannot reach 100% without external sidecar

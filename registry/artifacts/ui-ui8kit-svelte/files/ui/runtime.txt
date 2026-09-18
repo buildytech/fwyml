@@ -1,1 +1,1 @@
-svelte
+ui-ui8kit-svelte

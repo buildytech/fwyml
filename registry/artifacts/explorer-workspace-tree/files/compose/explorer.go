@@ -1,17 +1,12 @@
 package compose
 
 import (
-	"os"
+	"example.com/app/internal/workspace"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-type TreeNode struct {
-	Path  string `json:"path"`
-	Name  string `json:"name"`
-	IsDir bool   `json:"isDir"`
-}
-
+// ExplorerService exposes the workspace tree for the explorer@0 port.
 type ExplorerService struct{}
 
 func init() {
@@ -20,18 +15,11 @@ func init() {
 	})
 }
 
-func (service *ExplorerService) Tree() ([]TreeNode, error) {
+// Tree returns the recursive workspace file tree (workspace.ListTree).
+func (service *ExplorerService) Tree() ([]workspace.TreeNode, error) {
 	root, err := AttachedRoot()
 	if err != nil {
 		return nil, err
 	}
-	entries, err := os.ReadDir(root.Abs)
-	if err != nil {
-		return nil, err
-	}
-	nodes := make([]TreeNode, 0, len(entries))
-	for _, entry := range entries {
-		nodes = append(nodes, TreeNode{Path: entry.Name(), Name: entry.Name(), IsDir: entry.IsDir()})
-	}
-	return nodes, nil
+	return workspace.ListTree(root.Abs)
 }

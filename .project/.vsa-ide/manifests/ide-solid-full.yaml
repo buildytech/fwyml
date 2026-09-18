@@ -1,0 +1,72 @@
+schemaVersion: fw.buildy.tech/v0alpha1
+kind: Product
+
+metadata:
+  name: ide-solid-full
+  description: Wails 3 Solid full IDE chrome (Files | Editor+Terminal | Agent) via fwyml composition
+
+registries:
+  - id: local-vsa
+    source: ${FWYML_VSA_REGISTRY}
+
+composition:
+  capabilities:
+    host:
+      use: host-wails3-go
+    ui:
+      use: ui-ui8kit-solid
+    workspace:
+      use: workspace-fs-go
+    userstore:
+      use: userstore-local-go
+    languages:
+      use: languages-workspace-go
+    editor:
+      use: editor-editory-solid
+    explorer:
+      use: explorer-workspace-tree
+    vcs:
+      use: vcs-git-cli
+    terminal:
+      use: terminal-memory-go
+    agent:
+      use: agent-runtime-cursor-node
+    browse:
+      use: browse-webview2-windows
+    delivery:
+      use: delivery-portable-windows
+  slices:
+    - workshop-shell-solid
+    - explorer-surface-solid
+    - editor-surface-solid
+    - terminal-surface-solid
+    - agent-chat-surface-solid
+    - browser-surface-solid
+
+quality:
+  guidance:
+    - wails3-go
+    - solid-dx
+    - ui8kit-solid
+    - agent-event-contract
+    - browser-webview2
+    - ui8px
+    - accessibility
+  validators:
+    - go-test
+    - go-vet
+    - typescript-check
+    - wails-bindings
+    - ui8px
+    - aria
+    - wails-build
+
+constraints:
+  required:
+    - windows
+    - wails3
+    - go
+    - solid-js
+  forbidden:
+    - svelte
+    - templ

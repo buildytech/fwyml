@@ -1,3 +1,4 @@
+// Package workspace canonicalizes the folder that becomes the agent cwd.
 package workspace
 
 import (
@@ -17,6 +18,7 @@ func (root Root) Empty() bool {
 	return root.Abs == ""
 }
 
+// Open validates path as an existing directory and returns a stable root.
 func Open(path string) (Root, error) {
 	trimmed := strings.TrimSpace(path)
 	if trimmed == "" {

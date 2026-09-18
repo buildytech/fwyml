@@ -7,9 +7,9 @@ tasks:
       - bun run build
       - go build -ldflags="-H windowsgui" -o bin/app{{exeExt}} .
   generate:
-    desc: Generate bindings from the selected service surface
+    desc: Generate Wails TypeScript bindings (required after sync; outputs frontend/bindings)
     cmds:
-      - wails3 generate bindings -ts
+      - wails3 generate bindings -ts -names
   verify:
     cmds:
       - go test ./...

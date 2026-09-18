@@ -1,2 +1,8 @@
 browser-webview2
 .cursor/rules/browse.mdc
+
+
+## Linux / non-Windows
+WebView2 is a Windows product dependency. On Linux hosts keep browse gated
+(`browseCapability` → `webview2-windows-only`). Do not stub a WebView2 surface
+or claim Simple Browser works outside Windows portable delivery.

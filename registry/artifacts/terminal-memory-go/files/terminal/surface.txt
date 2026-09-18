@@ -1,0 +1,4 @@
+terminal-memory-go
+contract: terminal@0
+adapter: in-memory preview shell (Linux-safe)
+note: Does NOT claim PTY. For Windows ConPTY select terminal-windows-pty instead.

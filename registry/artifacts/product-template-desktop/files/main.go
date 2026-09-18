@@ -34,8 +34,8 @@ func main() {
 	compose.Bind(host)
 	host.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:  compose.ProductName,
-		Width:  1280,
-		Height: 840,
+		Width:  1440,
+		Height: 900,
 	})
 	if err := host.Run(); err != nil {
 		log.Fatal(err)

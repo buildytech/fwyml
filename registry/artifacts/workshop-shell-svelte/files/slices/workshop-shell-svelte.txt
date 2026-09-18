@@ -1,2 +1,1 @@
 workshop-shell-svelte
-slices/workshop-shell-svelte.txt

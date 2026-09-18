@@ -9,73 +9,92 @@ records:
     version: "0"
     contract: host@0
     readiness: draft
-    conformanceRefs: [host-lifecycle]
+    conformanceRefs:
+      - host-lifecycle
   - id: desktop-presentation
     kind: capability
     version: "0"
     contract: desktop-presentation@0
     readiness: draft
-    conformanceRefs: [desktop-presentation-boundary]
+    conformanceRefs:
+      - desktop-presentation-boundary
   - id: ui
     kind: capability
     version: "0"
     contract: ui@0
     readiness: draft
-    conformanceRefs: [selected-ui-runtime]
+    conformanceRefs:
+      - selected-ui-runtime
   - id: workspace
     kind: capability
     version: "0"
     contract: workspace@0
     readiness: draft
-    conformanceRefs: [workspace-revision-write]
+    conformanceRefs:
+      - workspace-revision-write
+  - id: userstore
+    kind: capability
+    version: "0"
+    contract: userstore@0
+    readiness: draft
+    conformanceRefs:
+      - userstore-session-lifetime
   - id: editor
     kind: capability
     version: "0"
     contract: editor@0
     readiness: draft
-    conformanceRefs: [editor-document-lifetime]
+    conformanceRefs:
+      - editor-document-lifetime
   - id: explorer
     kind: capability
     version: "0"
     contract: explorer@0
     readiness: draft
-    conformanceRefs: [explorer-open-intent]
+    conformanceRefs:
+      - explorer-open-intent
   - id: vcs
     kind: capability
     version: "0"
     contract: vcs@0
     readiness: draft
-    conformanceRefs: [vcs-status-and-failures]
+    conformanceRefs:
+      - vcs-status-and-failures
   - id: agent
     kind: capability
     version: "0"
     contract: agent@0
     readiness: draft
-    conformanceRefs: [agent-event-stream]
+    conformanceRefs:
+      - agent-event-stream
   - id: browse
     kind: capability
     version: "0"
     contract: browse@0
     readiness: draft
-    conformanceRefs: [browse-session-dispose]
+    conformanceRefs:
+      - browse-session-dispose
   - id: delivery
     kind: capability
     version: "0"
     contract: delivery@0
     readiness: draft
-    conformanceRefs: [portable-delivery]
+    conformanceRefs:
+      - portable-delivery
   - id: languages
     kind: capability
     version: "0"
     contract: languages@0
     readiness: draft
-    conformanceRefs: [language-document-operations]
+    conformanceRefs:
+      - language-document-operations
   - id: terminal
     kind: capability
     version: "0"
     contract: terminal@0
     readiness: draft
-    conformanceRefs: [terminal-session-lifecycle]
+    conformanceRefs:
+      - terminal-session-lifecycle
   - id: templ
     kind: capability
     version: "0"
@@ -91,15 +110,20 @@ records:
     version: "0"
     contract: ui@0
     readiness: draft
-
   - id: host-wails3-go
     kind: adapter
     version: 0.0.0-draft
     contract: host@0
-    provides: [host]
-    features: [wails3]
-    dependencies: [product-template-desktop]
+    provides:
+      - host
+    features:
+      - wails3
+    dependencies:
+      - product-template-desktop
     readiness: draft
+    notes: >-
+      HostService PickFolder/PickFile/PickSave/SaveFileAs/OpenPickedFile/Exit + native menus
+      emitting ide:command / ide:save / ide:save-as for listenHost. No WebView2 on Linux.
     source:
       kind: local
       path: ../artifacts/host-wails3-go
@@ -112,19 +136,23 @@ records:
     ownedFiles:
       - host/surface.txt
       - compose/host.go
+      - frontend/bindings/README.md
     go:
       module: github.com/wailsapp/wails/v3
       require: v3.0.0-beta.19
     compatibility:
-      platforms: [windows]
-      runtimes: [go]
-    conformanceRefs: [host-lifecycle]
-
+      platforms:
+        - windows
+      runtimes:
+        - go
+    conformanceRefs:
+      - host-lifecycle
   - id: delivery-portable-windows
     kind: delivery
     version: 0.0.0-draft
     contract: delivery@0
-    provides: [delivery]
+    provides:
+      - delivery
     readiness: draft
     source:
       kind: git
@@ -139,49 +167,52 @@ records:
       - packages/go/portable/platform/paths_test.go
     integrity:
       publicDigest: sha256:draft-delivery
-    conformanceRefs: [portable-delivery]
+    conformanceRefs:
+      - portable-delivery
     compatibility:
-      platforms: [windows]
-
+      platforms:
+        - windows
   - id: workspace-fs-go
     kind: adapter
     version: 0.0.0-draft
     contract: workspace@0
-    provides: [workspace]
+    provides:
+      - workspace
     readiness: draft
     source:
-      kind: git
+      kind: local
+      path: ../artifacts/workspace-fs-go
       repository: https://github.com/buildy-ui/ide.git
       commit: cd2734d9ce0ea0bc5c9da59d023f148875415114
-      exports:
-        packages/go/workspace/root.go: packages/go/workspace/root.go
-        packages/go/workspace/files.go: packages/go/workspace/files.go
-        packages/go/workspace/tree.go: packages/go/workspace/tree.go
-        packages/go/workspace/search.go: packages/go/workspace/search.go
-        packages/go/workspace/root_test.go: packages/go/workspace/root_test.go
-        packages/go/workspace/file_safety_test.go: packages/go/workspace/file_safety_test.go
-        packages/go/workspace/tree_test.go: packages/go/workspace/tree_test.go
-        packages/go/workspace/search_test.go: packages/go/workspace/search_test.go
       portable: false
     ownedFiles:
-      - packages/go/workspace/root.go
-      - packages/go/workspace/files.go
-      - packages/go/workspace/tree.go
-      - packages/go/workspace/search.go
-      - packages/go/workspace/root_test.go
-      - packages/go/workspace/file_safety_test.go
-      - packages/go/workspace/tree_test.go
-      - packages/go/workspace/search_test.go
+      - workspace/surface.txt
+      - compose/workspace.go
+      - internal/workspace/root.go
+      - internal/workspace/files.go
+      - internal/workspace/tree.go
+      - internal/workspace/search.go
+      - internal/workspace/root_test.go
+      - internal/workspace/tree_test.go
+      - internal/workspace/search_test.go
+      - internal/workspace/file_safety_test.go
+      - internal/workspace/testdata/broken.ts
+    notes: >-
+      Extracted from ide/packages/go/workspace into internal/workspace (OUT module path).
+      Compose WorkspaceService exposes open/tree/read/write/create/rename/trash/restore/reveal/search.
+      Solid UI uses WorkspaceService via src/lib/host.ts when native host is present; preview-session is Vite fallback.
     integrity:
       publicDigest: sha256:draft-workspace
-    conformanceRefs: [workspace-revision-write]
-
+    conformanceRefs:
+      - workspace-revision-write
   - id: explorer-workspace-tree
     kind: adapter
     version: 0.0.0-draft
     contract: explorer@0
-    provides: [explorer]
-    requires: [workspace]
+    provides:
+      - explorer
+    requires:
+      - workspace
     readiness: draft
     source:
       kind: local
@@ -192,69 +223,81 @@ records:
     ownedFiles:
       - explorer/surface.txt
       - compose/explorer.go
+    notes: >-
+      Tree() delegates to workspace.ListTree via AttachedRoot (recursive, skip-aware).
     integrity:
       publicDigest: sha256:draft-explorer
-    conformanceRefs: [explorer-open-intent]
-
+    conformanceRefs:
+      - explorer-open-intent
   - id: vcs-git-cli
     kind: adapter
     version: 0.0.0-draft
     contract: vcs@0
-    provides: [vcs]
+    provides:
+      - vcs
     readiness: draft
     source:
-      kind: git
+      kind: local
+      path: ../artifacts/vcs-git-cli
       repository: https://github.com/buildy-ui/ide.git
       commit: cd2734d9ce0ea0bc5c9da59d023f148875415114
-      exports:
-        packages/go/vcs/git.go: packages/go/vcs/git.go
-        packages/go/vcs/git_test.go: packages/go/vcs/git_test.go
-        packages/go/process/process_windows.go: packages/go/process/process_windows.go
-        packages/go/process/process_other.go: packages/go/process/process_other.go
       portable: false
     ownedFiles:
-      - packages/go/vcs/git.go
-      - packages/go/vcs/git_test.go
-      - packages/go/process/process_windows.go
+      - vcs/surface.txt
+      - compose/vcs.go
+      - internal/vcs/git.go
+      - internal/vcs/git_test.go
       - packages/go/process/process_other.go
+      - packages/go/process/process_windows.go
+    notes: >-
+      Extracted from ide/packages/go/vcs (import rewritten to example.com/app/packages/go/process).
+      Compose VCSService Status/Stage/Unstage/Commit/Push/Fetch/Pull/Diff against AttachedRoot.
     integrity:
       publicDigest: sha256:draft-vcs
-    conformanceRefs: [vcs-status-and-failures]
-
+    conformanceRefs:
+      - vcs-status-and-failures
   - id: ui-ui8kit-templ
     kind: adapter
     version: 0.0.0-draft
     contract: ui@0
-    provides: [ui, templ]
+    provides:
+      - ui
+      - templ
     readiness: draft
     source:
       kind: generated
       path: ../artifacts/ui-ui8kit-templ
       portable: false
     compatibility:
-      runtimes: [templ]
+      runtimes:
+        - templ
     ownedFiles:
       - ui/runtime.txt
       - frontend/dist/index.html
       - frontend/app.templ
     integrity:
       publicDigest: sha256:draft-ui-templ
-    conformanceRefs: [selected-ui-runtime]
-    dependencies: [ui8kit-codegen]
-
+    conformanceRefs:
+      - selected-ui-runtime
+    dependencies:
+      - ui8kit-codegen
   - id: ui-ui8kit-svelte
     kind: adapter
     version: 0.0.0-draft
     contract: ui@0
-    provides: [ui, svelte]
-    features: [svelte5]
+    provides:
+      - ui
+      - svelte
+    features:
+      - svelte5
     readiness: draft
     source:
-      kind: generated
+      kind: local
       path: ../artifacts/ui-ui8kit-svelte
       portable: false
     compatibility:
-      runtimes: [svelte]
+      runtimes:
+        - svelte
     ownedFiles:
       - ui/runtime.txt
       - index.html
@@ -263,27 +306,54 @@ records:
       - tsconfig.json
       - src/main.ts
       - src/app.css
+      - packages/ui8kit-svelte/generated/ui/badge/Badge.svelte
+      - packages/ui8kit-svelte/generated/ui/badge/badge.shared.ts
+      - packages/ui8kit-svelte/generated/ui/badge/badge.variants.json
+      - packages/ui8kit-svelte/generated/ui/button/Button.svelte
+      - packages/ui8kit-svelte/generated/ui/button/button.shared.ts
+      - packages/ui8kit-svelte/generated/ui/button/button.variants.json
+      - packages/ui8kit-svelte/generated/ui/index.svelte.ts
+      - packages/ui8kit-svelte/generated/ui/separator/Separator.svelte
+      - packages/ui8kit-svelte/generated/ui/separator/separator.shared.ts
+      - packages/ui8kit-svelte/generated/ui/separator/separator.variants.json
+      - packages/ui8kit-svelte/generated/ui/text/Text.svelte
+      - packages/ui8kit-svelte/generated/ui/text/text.shared.ts
+      - packages/ui8kit-svelte/generated/ui/text/text.variants.json
+      - packages/ui8kit-svelte/generated/utils/cn.ts
+      - packages/ui8kit-svelte/generated/utils/env.ts
+      - packages/ui8kit-svelte/generated/utils/expr.ts
+      - packages/ui8kit-svelte/generated/utils/index.ts
+      - packages/ui8kit-svelte/generated/utils/recipe-types.ts
+      - packages/ui8kit-svelte/generated/utils/tags.ts
+      - packages/ui8kit-svelte/generated/utils/variants.ts
     npm:
       dependencies:
-        svelte: "5.19.10"
-        "@wailsio/runtime": "3.0.0-beta.19"
+        svelte: 5.19.10
+        "@wailsio/runtime": 3.0.0-beta.19
+        clsx: 2.1.1
+        tailwind-merge: 2.6.0
       devDependencies:
-        vite: "6.3.1"
-        "@sveltejs/vite-plugin-svelte": "5.0.3"
-        typescript: "5.7.3"
+        vite: 6.3.1
+        "@sveltejs/vite-plugin-svelte": 5.0.3
+        typescript: 5.7.3
       scripts:
         dev: vite
         build: vite build
+    notes: Vite+Svelte5 shell with owned UI8Kit codegen Svelte brick subset under packages/ui8kit-svelte/generated. npm
+      @ui8kit/codegen is 404 — bricks are vendored locally.
     integrity:
       publicDigest: sha256:draft-ui-svelte
-    conformanceRefs: [selected-ui-runtime]
-    dependencies: [ui8kit-codegen]
-
+    conformanceRefs:
+      - selected-ui-runtime
+    dependencies:
+      - ui8kit-codegen
   - id: ui-ui8kit-solid
     kind: adapter
     version: 0.0.0-draft
     contract: ui@0
-    provides: [ui, solid-js]
+    provides:
+      - ui
+      - solid-js
     readiness: draft
     source:
       kind: local
@@ -292,23 +362,184 @@ records:
       commit: fda6faf8d6493aa1bd82d4083b1de8a565da32a3
       portable: false
     compatibility:
-      runtimes: [solid]
+      runtimes:
+        - solid
     ownedFiles:
+      - index.html
+      - packages/solid/README.md
+      - packages/solid/package.json
+      - packages/solid/src/index.ts
+      - packages/solid/src/kit/README.md
+      - packages/solid/src/kit/ui/alert/alert.shared.ts
+      - packages/solid/src/kit/ui/alert/alert.solid.tsx
+      - packages/solid/src/kit/ui/alert/alert.variants.json
+      - packages/solid/src/kit/ui/badge/badge.shared.ts
+      - packages/solid/src/kit/ui/badge/badge.solid.tsx
+      - packages/solid/src/kit/ui/badge/badge.variants.json
+      - packages/solid/src/kit/ui/block/block.shared.ts
+      - packages/solid/src/kit/ui/block/block.solid.tsx
+      - packages/solid/src/kit/ui/block/block.variants.json
+      - packages/solid/src/kit/ui/box/box.shared.ts
+      - packages/solid/src/kit/ui/box/box.solid.tsx
+      - packages/solid/src/kit/ui/box/box.variants.json
+      - packages/solid/src/kit/ui/breadcrumb/breadcrumb.shared.ts
+      - packages/solid/src/kit/ui/breadcrumb/breadcrumb.solid.tsx
+      - packages/solid/src/kit/ui/button/button.shared.ts
+      - packages/solid/src/kit/ui/button/button.solid.tsx
+      - packages/solid/src/kit/ui/button/button.variants.json
+      - packages/solid/src/kit/ui/card/card.shared.ts
+      - packages/solid/src/kit/ui/card/card.solid.tsx
+      - packages/solid/src/kit/ui/card/card.variants.json
+      - packages/solid/src/kit/ui/checkbox/checkbox.shared.ts
+      - packages/solid/src/kit/ui/checkbox/checkbox.solid.tsx
+      - packages/solid/src/kit/ui/checkbox/checkbox.variants.json
+      - packages/solid/src/kit/ui/container/container.shared.ts
+      - packages/solid/src/kit/ui/container/container.solid.tsx
+      - packages/solid/src/kit/ui/container/container.variants.json
+      - packages/solid/src/kit/ui/dialog/dialog.shared.ts
+      - packages/solid/src/kit/ui/dialog/dialog.solid.tsx
+      - packages/solid/src/kit/ui/dialog/dialog.variants.json
+      - packages/solid/src/kit/ui/disclosure/disclosure.shared.ts
+      - packages/solid/src/kit/ui/disclosure/disclosure.solid.tsx
+      - packages/solid/src/kit/ui/disclosure/disclosure.variants.json
+      - packages/solid/src/kit/ui/disclosure/summary.variants.json
+      - packages/solid/src/kit/ui/form/controls.shared.ts
+      - packages/solid/src/kit/ui/form/controls.solid.tsx
+      - packages/solid/src/kit/ui/form/fieldset.variants.json
+      - packages/solid/src/kit/ui/form/form-description.variants.json
+      - packages/solid/src/kit/ui/form/form-item.variants.json
+      - packages/solid/src/kit/ui/form/form-message.variants.json
+      - packages/solid/src/kit/ui/form/form.shared.ts
+      - packages/solid/src/kit/ui/form/form.solid.tsx
+      - packages/solid/src/kit/ui/form/form.variants.json
+      - packages/solid/src/kit/ui/form/legend.variants.json
+      - packages/solid/src/kit/ui/form/meter.variants.json
+      - packages/solid/src/kit/ui/form/progress.variants.json
+      - packages/solid/src/kit/ui/grid/grid.shared.ts
+      - packages/solid/src/kit/ui/grid/grid.solid.tsx
+      - packages/solid/src/kit/ui/grid/grid.variants.json
+      - packages/solid/src/kit/ui/group/group.shared.ts
+      - packages/solid/src/kit/ui/group/group.solid.tsx
+      - packages/solid/src/kit/ui/group/group.variants.json
+      - packages/solid/src/kit/ui/icon/icon.shared.ts
+      - packages/solid/src/kit/ui/icon/icon.solid.tsx
+      - packages/solid/src/kit/ui/icon/icon.variants.json
+      - packages/solid/src/kit/ui/iconbadge/iconbadge.shared.ts
+      - packages/solid/src/kit/ui/iconbadge/iconbadge.solid.tsx
+      - packages/solid/src/kit/ui/iconbadge/iconbadge.variants.json
+      - packages/solid/src/kit/ui/image/image.shared.ts
+      - packages/solid/src/kit/ui/image/image.solid.tsx
+      - packages/solid/src/kit/ui/image/image.variants.json
+      - packages/solid/src/kit/ui/index.solid.ts
+      - packages/solid/src/kit/ui/inline/inline.shared.ts
+      - packages/solid/src/kit/ui/inline/inline.solid.tsx
+      - packages/solid/src/kit/ui/inline/inline.variants.json
+      - packages/solid/src/kit/ui/input/input.shared.ts
+      - packages/solid/src/kit/ui/input/input.solid.tsx
+      - packages/solid/src/kit/ui/input/input.variants.json
+      - packages/solid/src/kit/ui/label/label.shared.ts
+      - packages/solid/src/kit/ui/label/label.solid.tsx
+      - packages/solid/src/kit/ui/label/label.variants.json
+      - packages/solid/src/kit/ui/linebreak/linebreak.shared.ts
+      - packages/solid/src/kit/ui/linebreak/linebreak.solid.tsx
+      - packages/solid/src/kit/ui/linebreak/linebreak.variants.json
+      - packages/solid/src/kit/ui/link/link.shared.ts
+      - packages/solid/src/kit/ui/link/link.solid.tsx
+      - packages/solid/src/kit/ui/link/link.variants.json
+      - packages/solid/src/kit/ui/list/list.shared.ts
+      - packages/solid/src/kit/ui/list/list.solid.tsx
+      - packages/solid/src/kit/ui/list/list.variants.json
+      - packages/solid/src/kit/ui/radio/radio.shared.ts
+      - packages/solid/src/kit/ui/radio/radio.solid.tsx
+      - packages/solid/src/kit/ui/radio/radio.variants.json
+      - packages/solid/src/kit/ui/select/select.shared.ts
+      - packages/solid/src/kit/ui/select/select.solid.tsx
+      - packages/solid/src/kit/ui/select/select.variants.json
+      - packages/solid/src/kit/ui/separator/separator.shared.ts
+      - packages/solid/src/kit/ui/separator/separator.solid.tsx
+      - packages/solid/src/kit/ui/separator/separator.variants.json
+      - packages/solid/src/kit/ui/shared.ts
+      - packages/solid/src/kit/ui/stack/stack.shared.ts
+      - packages/solid/src/kit/ui/stack/stack.solid.tsx
+      - packages/solid/src/kit/ui/stack/stack.variants.json
+      - packages/solid/src/kit/ui/switch/switch.shared.ts
+      - packages/solid/src/kit/ui/switch/switch.solid.tsx
+      - packages/solid/src/kit/ui/switch/switch.variants.json
+      - packages/solid/src/kit/ui/table/table.shared.ts
+      - packages/solid/src/kit/ui/table/table.solid.tsx
+      - packages/solid/src/kit/ui/table/table.variants.json
+      - packages/solid/src/kit/ui/text/text.shared.ts
+      - packages/solid/src/kit/ui/text/text.solid.tsx
+      - packages/solid/src/kit/ui/text/text.variants.json
+      - packages/solid/src/kit/ui/textarea/textarea.shared.ts
+      - packages/solid/src/kit/ui/textarea/textarea.solid.tsx
+      - packages/solid/src/kit/ui/textarea/textarea.variants.json
+      - packages/solid/src/kit/ui/title/title.shared.ts
+      - packages/solid/src/kit/ui/title/title.solid.tsx
+      - packages/solid/src/kit/ui/title/title.variants.json
+      - packages/solid/src/kit/utils/cn.ts
+      - packages/solid/src/kit/utils/env.ts
+      - packages/solid/src/kit/utils/expr.ts
+      - packages/solid/src/kit/utils/index.ts
+      - packages/solid/src/kit/utils/recipe-types.ts
+      - packages/solid/src/kit/utils/tags.ts
+      - packages/solid/src/kit/utils/variants.ts
+      - packages/solid/tsconfig.json
+      - public/icons.svg
+      - src/app.css
+      - src/assets/favicon/favicon.png
+      - src/assets/fonts/nunito-sans-cyrillic-wght.woff2
+      - src/assets/fonts/nunito-sans-latin-wght.woff2
+      - src/assets/styles/theme.css
+      - src/main.tsx
+      - tsconfig.json
       - ui/runtime.txt
-      - frontend/dist/index.html
-      - frontend/src/App.solid.tsx
+      - vite.config.ts
     npm:
       dependencies:
-        solid-js: "1.9.0"
+        solid-js: 1.9.0
+        "@wailsio/runtime": 3.0.0-beta.19
+        codemirror: ^6.0.2
+        "@codemirror/autocomplete": 6.20.3
+        "@codemirror/lang-css": ^6.3.1
+        "@codemirror/lang-html": ^6.4.9
+        "@codemirror/lang-javascript": ^6.2.4
+        "@codemirror/lang-json": ^6.0.2
+        "@codemirror/lang-markdown": ^6.3.3
+        "@codemirror/lang-python": ^6.2.1
+        "@codemirror/lang-yaml": ^6.1.2
+        "@codemirror/language": ^6.11.3
+        "@codemirror/lint": 6.9.7
+        "@codemirror/search": ^6.7.2
+        "@codemirror/state": ^6.5.2
+        "@codemirror/view": ^6.38.1
+        "@lezer/highlight": ^1.2.3
+        clsx: ^2.1.1
+        tailwind-merge: ^3.6.0
+        "@codemirror/lang-go": ^6.0.1
+      devDependencies:
+        vite: 6.3.1
+        vite-plugin-solid: 2.11.6
+        typescript: 5.7.3
+        tailwindcss: 4.1.11
+        "@tailwindcss/vite": 4.1.11
+      scripts:
+        dev: vite
+        build: vite build
+    notes: Vite+Solid+packages/solid (UI8Kit from ide) + CodeMirror. Staging bricks also at artifacts/ui8kit-codegen/files
+      (tool id ui8kit-codegen lives in tools.yaml).
     integrity:
       publicDigest: sha256:draft-ui-solid
-    conformanceRefs: [selected-ui-runtime]
-
+    conformanceRefs:
+      - selected-ui-runtime
+    dependencies:
+      - ui8kit-codegen
   - id: editor-templ
     kind: adapter
     version: 0.0.0-draft
     contract: editor@0
-    provides: [editor]
+    provides:
+      - editor
     readiness: draft
     source:
       kind: local
@@ -320,18 +551,19 @@ records:
     notes: Limited textarea document adapter. Does not claim richer editor parity.
     integrity:
       publicDigest: sha256:draft-editor-templ
-    conformanceRefs: [editor-document-lifetime]
-
+    conformanceRefs:
+      - editor-document-lifetime
   - id: editor-editory-svelte
     kind: adapter
     version: 0.0.0-draft
     contract: editor@0
-    provides: [editor]
+    provides:
+      - editor
     readiness: draft
     source:
       kind: npm
       package: "@ui8kit/editory-svelte"
-      ref: "0.0.0-draft"
+      ref: 0.0.0-draft
       path: ../artifacts/editor-editory-svelte
       portable: false
     ownedFiles:
@@ -340,15 +572,134 @@ records:
     notes: EditorY Svelte is the intended host. Until a verified package is pinned, the surface uses the editor@0 buffer.
     integrity:
       publicDigest: sha256:draft-editory
-    conformanceRefs: [editor-document-lifetime]
+    conformanceRefs:
+      - editor-document-lifetime
+  - id: editor-editory-solid
+    kind: adapter
+    version: 0.0.0-draft
+    contract: editor@0
+    provides:
+      - editor
+    readiness: draft
+    source:
+      kind: local
+      path: ../artifacts/editor-editory-solid
+      repository: https://github.com/buildy-ui/ide.git
+      portable: false
+    ownedFiles:
+      - editor/surface.txt
+      - compose/editor.go
+      - src/components/widgets/MarkdownEditor.solid.tsx
+      - src/lib/markdown-gate.ts
+      - src/lib/markdown-gate.test.ts
+    npm:
+      dependencies:
+        "@ui8kit/editory-solid": 0.2.1
+        editory: ^0.2.0
+    notes: >-
+      Visual markdown via published @ui8kit/editory-solid + editory peer.
+      Go EditorService remains editor@0 document buffer (same IPC as textarea).
+      Does not claim Windows WebView2 or agent sidecar.
+    integrity:
+      publicDigest: sha256:draft-editor-editory-solid
+    conformanceRefs:
+      - editor-document-lifetime
+  - id: editor-textarea-solid
+    kind: adapter
+    version: 0.0.0-draft
+    contract: editor@0
+    provides:
+      - editor
+    readiness: draft
+    source:
+      kind: local
+      path: ../artifacts/editor-textarea-solid
+      portable: false
+    ownedFiles:
+      - editor/surface.txt
+      - compose/editor.go
+    notes: Honest textarea document adapter for Solid IDE products. Does not claim CodeMirror/EditorY parity.
+    integrity:
+      publicDigest: sha256:draft-editor-textarea-solid
+    conformanceRefs:
+      - editor-document-lifetime
+  - id: editor-textarea-svelte
+    kind: adapter
+    version: 0.0.0-draft
+    contract: editor@0
+    provides:
+      - editor
+    readiness: draft
+    source:
+      kind: local
+      path: ../artifacts/editor-textarea-svelte
+      portable: false
+    ownedFiles:
+      - editor/surface.txt
+      - compose/editor.go
+    notes: Honest textarea document adapter for Svelte IDE products. Does not claim CodeMirror/EditorY parity
+      (@ui8kit/editory-svelte 404).
+    integrity:
+      publicDigest: sha256:draft-editor-textarea-svelte
+    conformanceRefs:
+      - editor-document-lifetime
+  - id: terminal-memory-go
+    kind: adapter
+    version: 0.0.0-draft
+    contract: terminal@0
+    provides:
+      - terminal
+    readiness: draft
+    source:
+      kind: local
+      path: ../artifacts/terminal-memory-go
+      portable: false
+    ownedFiles:
+      - terminal/surface.txt
+      - compose/terminal.go
+    notes: >-
+      In-memory preview terminal for Linux/demo hosts. Does not claim PTY.
+      Windows ConPTY lives in terminal-windows-pty (not selected by ide-*-full on this Linux box).
+    integrity:
+      publicDigest: sha256:draft-terminal-memory
+    conformanceRefs:
+      - terminal-session-lifecycle
 
+  - id: terminal-windows-pty
+    kind: adapter
+    version: 0.0.0-draft
+    contract: terminal@0
+    provides:
+      - terminal
+    readiness: draft
+    source:
+      kind: local
+      path: ../artifacts/terminal-windows-pty
+      repository: https://github.com/buildy-ui/ide.git
+      commit: cd2734d9ce0ea0bc5c9da59d023f148875415114
+      portable: false
+    ownedFiles:
+      - terminal/surface.txt
+      - compose/terminal.go
+      - internal/terminal/session_other.go
+      - internal/terminal/session_windows.go
+      - internal/terminal/session_windows_test.go
+    notes: >-
+      Extracted from ide/internal/terminal (Windows ConPTY). On !windows Start fails honestly.
+      Prefer selecting this only on Windows products; ide-solid-full/ide-svelte-full keep terminal-memory-go.
+    integrity:
+      publicDigest: sha256:draft-terminal-windows-pty
+    conformanceRefs:
+      - terminal-session-lifecycle
   - id: browse-webview2-windows
     kind: adapter
     version: 0.0.0-draft
     contract: browse@0
-    provides: [browse]
+    provides:
+      - browse
     readiness: draft
-    conflicts: [webview2-browser]
+    conflicts:
+      - webview2-browser
     source:
       kind: local
       path: ../artifacts/browse-webview2-windows
@@ -362,17 +713,17 @@ records:
       - internal/browse/hub_test.go
     integrity:
       publicDigest: sha256:draft-browse
-    conformanceRefs: [browse-session-dispose]
+    conformanceRefs:
+      - browse-session-dispose
     compatibility:
-      platforms: [windows]
-
+      platforms:
+        - windows
   - id: webview2-browser
     kind: capability
     version: "0"
     contract: browse@0
     readiness: draft
     notes: Alias used by product constraints for the native browser adapter family.
-
   - id: agent-event-contract
     kind: adapter
     version: 0.0.0-draft
@@ -390,14 +741,15 @@ records:
       - packages/agent-contract/index.ts
     integrity:
       publicDigest: sha256:draft-agent-contract
-
   - id: agent-runtime-cursor-node
     kind: adapter
     version: 0.0.0-draft
     contract: agent@0
-    provides: [agent]
+    provides:
+      - agent
     readiness: blocked
-    dependencies: [agent-event-contract]
+    dependencies:
+      - agent-event-contract
     source:
       kind: local
       path: ../artifacts/agent-runtime-cursor-node
@@ -407,19 +759,26 @@ records:
     ownedFiles:
       - agent/runtime.txt
       - compose/agent.go
-    notes: Event contract exists; the sidecar runtime is not extracted.
+    notes: >-
+      Event contract exists; Node @cursor/sdk sidecar + Go agentipc supervisor are NOT in ide/
+      and are not extracted. AgentService stays fail-closed (ready:false).
     integrity:
       publicDigest: sha256:draft-agent-runtime
-    conformanceRefs: [agent-event-stream]
-
+    conformanceRefs:
+      - agent-event-stream
   - id: workshop-shell-templ
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [host, ui]
-    surfaces: [application-shell]
-    uiFamilies: [templ]
-    hostFamilies: [go]
+    requires:
+      - host
+      - ui
+    surfaces:
+      - application-shell
+    uiFamilies:
+      - templ
+    hostFamilies:
+      - go
     source:
       kind: files
       path: ../artifacts/workshop-shell-templ
@@ -428,18 +787,27 @@ records:
       - slices/workshop-shell-templ.txt
       - views/app.templ
     removal:
-      ownedFiles: [slices/workshop-shell-templ.txt, views/app.templ]
+      ownedFiles:
+        - slices/workshop-shell-templ.txt
+        - views/app.templ
     integrity:
       publicDigest: sha256:draft-workshop-shell-templ
-
   - id: workshop-shell-svelte
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [host, ui]
-    surfaces: [application-shell]
-    uiFamilies: [svelte]
-    hostFamilies: [go]
+    requires:
+      - host
+      - ui
+      - workspace
+      - editor
+      - explorer
+    surfaces:
+      - application-shell
+    uiFamilies:
+      - svelte
+    hostFamilies:
+      - go
     source:
       kind: files
       path: ../artifacts/workshop-shell-svelte
@@ -448,27 +816,121 @@ records:
       - slices/workshop-shell-svelte.txt
       - src/App.svelte
     removal:
-      ownedFiles: [slices/workshop-shell-svelte.txt, src/App.svelte]
+      ownedFiles:
+        - slices/workshop-shell-svelte.txt
+        - src/App.svelte
+    notes: Full IDE chrome shell (Files | Editor+Terminal | Agent) for Svelte products. Mirrors workshop-shell-solid shape.
     integrity:
       publicDigest: sha256:draft-workshop-shell-svelte
-
   - id: workshop-shell-solid
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [host, ui]
-    surfaces: [application-shell]
-    uiFamilies: [solid]
-    hostFamilies: [go]
+    requires:
+      - host
+      - ui
+      - workspace
+      - userstore
+      - editor
+      - explorer
+    surfaces:
+      - application-shell
+    uiFamilies:
+      - solid
+    hostFamilies:
+      - go
     source:
       kind: files
       path: ../artifacts/workshop-shell-solid
       portable: false
     ownedFiles:
       - slices/workshop-shell-solid.txt
+      - internal/product/menus.json
       - src/App.solid.tsx
+      - src/components/AppHeader.solid.tsx
+      - src/components/AppMain.solid.tsx
+      - src/components/widgets/WorkspaceSettings.solid.tsx
+      - src/components/widgets/TokenSelect.solid.tsx
+      - src/components/widgets/PreviewContextMenu.solid.tsx
+      - src/views/WelcomeView.solid.tsx
+      - src/views/SettingsView.solid.tsx
+      - src/lib/aria.ts
+      - src/lib/browser-tab.ts
+      - src/lib/browse.ts
+      - src/lib/column-split.ts
+      - src/lib/commands.ts
+      - src/lib/context-actions.ts
+      - src/lib/copy.ts
+      - src/lib/diagnostics.ts
+      - src/lib/dirty-choice.ts
+      - src/lib/editor-document.ts
+      - src/lib/editor-languages.ts
+      - src/lib/editor-prefs.ts
+      - src/lib/editor-theme.ts
+      - src/lib/event-reduce.ts
+      - src/lib/file-buffer.ts
+      - src/lib/git-decorations.ts
+      - src/lib/git-diff.ts
+      - src/lib/git-message.ts
+      - src/lib/host-error.ts
+      - src/lib/host.ts
+      - src/lib/language.ts
+      - src/lib/prefs.ts
+      - src/lib/preview-session.ts
+      - src/lib/preview.ts
+      - src/lib/product.ts
+      - src/lib/session-local.ts
+      - src/lib/session-persist.ts
+      - src/lib/tab-label.ts
+      - src/lib/theme.ts
+      - src/lib/workbench.ts
+      - src/lib/workspace-tree.ts
     removal:
-      ownedFiles: [slices/workshop-shell-solid.txt, src/App.solid.tsx]
+      ownedFiles:
+        - slices/workshop-shell-solid.txt
+        - internal/product/menus.json
+        - src/App.solid.tsx
+        - src/components/AppHeader.solid.tsx
+        - src/components/AppMain.solid.tsx
+        - src/components/widgets/WorkspaceSettings.solid.tsx
+        - src/components/widgets/PreviewContextMenu.solid.tsx
+        - src/views/WelcomeView.solid.tsx
+        - src/views/SettingsView.solid.tsx
+        - src/lib/aria.ts
+        - src/lib/browser-tab.ts
+        - src/lib/browse.ts
+        - src/lib/column-split.ts
+        - src/lib/commands.ts
+        - src/lib/context-actions.ts
+        - src/lib/copy.ts
+        - src/lib/diagnostics.ts
+        - src/lib/dirty-choice.ts
+        - src/lib/editor-document.ts
+        - src/lib/editor-languages.ts
+        - src/lib/editor-prefs.ts
+        - src/lib/editor-theme.ts
+        - src/lib/event-reduce.ts
+        - src/lib/file-buffer.ts
+        - src/lib/git-decorations.ts
+        - src/lib/git-diff.ts
+        - src/lib/git-message.ts
+        - src/lib/host-error.ts
+        - src/lib/host.ts
+        - src/lib/language.ts
+        - src/lib/prefs.ts
+        - src/lib/preview-session.ts
+        - src/lib/preview.ts
+        - src/lib/product.ts
+        - src/lib/session-local.ts
+        - src/lib/session-persist.ts
+        - src/lib/tab-label.ts
+        - src/lib/theme.ts
+        - src/lib/workbench.ts
+        - src/lib/workspace-tree.ts
+    notes: >-
+      Full IDE chrome shell (Files | Editor+Terminal | Agent) for Solid products.
+      Bridge wires listenHost / native Save-As / aria helpers / LanguageService when selected.
+      host.ts uses WorkspaceService + UserStoreService; session-local/preview-session are Vite fallbacks.
     integrity:
       publicDigest: sha256:draft-workshop-shell-solid
 
@@ -476,9 +938,12 @@ records:
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [editor]
-    surfaces: [editor]
-    uiFamilies: [templ]
+    requires:
+      - editor
+    surfaces:
+      - editor
+    uiFamilies:
+      - templ
     source:
       kind: files
       path: ../artifacts/editor-surface-templ
@@ -492,14 +957,16 @@ records:
         - views/editor.templ
     integrity:
       publicDigest: sha256:draft-editor-surface-templ
-
   - id: editor-surface-svelte
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [editor]
-    surfaces: [editor]
-    uiFamilies: [svelte]
+    requires:
+      - editor
+    surfaces:
+      - editor
+    uiFamilies:
+      - svelte
     source:
       kind: files
       path: ../artifacts/editor-surface-svelte
@@ -513,14 +980,16 @@ records:
         - src/surfaces/Editor.svelte
     integrity:
       publicDigest: sha256:draft-editor-surface-svelte
-
   - id: explorer-surface-templ
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [explorer]
-    surfaces: [explorer]
-    uiFamilies: [templ]
+    requires:
+      - explorer
+    surfaces:
+      - explorer
+    uiFamilies:
+      - templ
     source:
       kind: files
       path: ../artifacts/explorer-surface-templ
@@ -534,14 +1003,16 @@ records:
         - views/explorer.templ
     integrity:
       publicDigest: sha256:draft-explorer-surface-templ
-
   - id: explorer-surface-svelte
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [explorer]
-    surfaces: [explorer]
-    uiFamilies: [svelte]
+    requires:
+      - explorer
+    surfaces:
+      - explorer
+    uiFamilies:
+      - svelte
     source:
       kind: files
       path: ../artifacts/explorer-surface-svelte
@@ -549,20 +1020,24 @@ records:
     ownedFiles:
       - slices/explorer-surface-svelte.txt
       - src/surfaces/Explorer.svelte
+      - src/surfaces/TreeBranch.svelte
     removal:
       ownedFiles:
         - slices/explorer-surface-svelte.txt
         - src/surfaces/Explorer.svelte
+        - src/surfaces/TreeBranch.svelte
     integrity:
       publicDigest: sha256:draft-explorer-surface-svelte
-
   - id: browser-surface-templ
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [browse]
-    surfaces: [browse]
-    uiFamilies: [templ]
+    requires:
+      - browse
+    surfaces:
+      - browse
+    uiFamilies:
+      - templ
     source:
       kind: files
       path: ../artifacts/browser-surface-templ
@@ -570,35 +1045,43 @@ records:
     ownedFiles:
       - slices/browser-surface-templ.txt
     removal:
-      ownedFiles: [slices/browser-surface-templ.txt]
+      ownedFiles:
+        - slices/browser-surface-templ.txt
     integrity:
       publicDigest: sha256:draft-browser-surface-templ
-
   - id: browser-surface-solid
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [browse]
-    surfaces: [browse]
-    uiFamilies: [solid]
+    requires:
+      - browse
+    surfaces:
+      - browse
+    uiFamilies:
+      - solid
     source:
       kind: files
       path: ../artifacts/browser-surface-solid
       portable: false
     ownedFiles:
       - slices/browser-surface-solid.txt
+      - src/surfaces/Browse.solid.tsx
     removal:
-      ownedFiles: [slices/browser-surface-solid.txt]
+      ownedFiles:
+        - slices/browser-surface-solid.txt
+        - src/surfaces/Browse.solid.tsx
     integrity:
       publicDigest: sha256:draft-browser-surface-solid
-
   - id: agent-chat-surface-svelte
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [agent]
-    surfaces: [agent-chat]
-    uiFamilies: [svelte]
+    requires:
+      - agent
+    surfaces:
+      - agent-chat
+    uiFamilies:
+      - svelte
     source:
       kind: files
       path: ../artifacts/agent-chat-surface-svelte
@@ -612,14 +1095,16 @@ records:
         - src/surfaces/Chat.svelte
     integrity:
       publicDigest: sha256:draft-agent-chat-svelte
-
   - id: agent-chat-surface-solid
     kind: vertical-slice
     version: 0.0.0-draft
     readiness: draft
-    requires: [agent]
-    surfaces: [agent-chat]
-    uiFamilies: [solid]
+    requires:
+      - agent
+    surfaces:
+      - agent-chat
+    uiFamilies:
+      - solid
     source:
       kind: files
       path: ../artifacts/agent-chat-surface-solid
@@ -627,13 +1112,153 @@ records:
     ownedFiles:
       - slices/agent-chat-surface-solid.txt
       - src/surfaces/Chat.solid.tsx
+      - src/surfaces/ChatPanel.solid.tsx
     removal:
       ownedFiles:
         - slices/agent-chat-surface-solid.txt
         - src/surfaces/Chat.solid.tsx
+        - src/surfaces/ChatPanel.solid.tsx
     integrity:
       publicDigest: sha256:draft-agent-chat-solid
-
+  - id: editor-surface-solid
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires:
+      - editor
+    surfaces:
+      - editor
+    uiFamilies:
+      - solid
+    source:
+      kind: files
+      path: ../artifacts/editor-surface-solid
+      portable: false
+    ownedFiles:
+      - slices/editor-surface-solid.txt
+      - src/surfaces/CodeEditor.solid.tsx
+      - src/surfaces/Editor.solid.tsx
+      - src/views/EditorView.solid.tsx
+      - src/components/widgets/BrowserTab.solid.tsx
+      - src/components/widgets/GitPanel.solid.tsx
+      - src/components/widgets/ProblemsPanel.solid.tsx
+    removal:
+      ownedFiles:
+        - slices/editor-surface-solid.txt
+        - src/surfaces/CodeEditor.solid.tsx
+        - src/surfaces/Editor.solid.tsx
+        - src/views/EditorView.solid.tsx
+        - src/components/widgets/BrowserTab.solid.tsx
+        - src/components/widgets/GitPanel.solid.tsx
+        - src/components/widgets/ProblemsPanel.solid.tsx
+    integrity:
+      publicDigest: sha256:draft-editor-surface-solid
+  - id: explorer-surface-solid
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires:
+      - explorer
+    surfaces:
+      - explorer
+    uiFamilies:
+      - solid
+    source:
+      kind: files
+      path: ../artifacts/explorer-surface-solid
+      portable: false
+    ownedFiles:
+      - slices/explorer-surface-solid.txt
+      - src/surfaces/Explorer.solid.tsx
+      - src/surfaces/FileTree.solid.tsx
+    removal:
+      ownedFiles:
+        - slices/explorer-surface-solid.txt
+        - src/surfaces/Explorer.solid.tsx
+        - src/surfaces/FileTree.solid.tsx
+    integrity:
+      publicDigest: sha256:draft-explorer-surface-solid
+  - id: terminal-surface-solid
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires:
+      - terminal
+    surfaces:
+      - terminal
+    uiFamilies:
+      - solid
+    source:
+      kind: files
+      path: ../artifacts/terminal-surface-solid
+      portable: false
+    ownedFiles:
+      - slices/terminal-surface-solid.txt
+      - src/surfaces/Terminal.solid.tsx
+      - src/components/widgets/TerminalPanel.solid.tsx
+      - src/components/widgets/TerminalSession.solid.tsx
+    removal:
+      ownedFiles:
+        - slices/terminal-surface-solid.txt
+        - src/surfaces/Terminal.solid.tsx
+        - src/components/widgets/TerminalPanel.solid.tsx
+        - src/components/widgets/TerminalSession.solid.tsx
+    npm:
+      dependencies:
+        "@xterm/xterm": ^6.0.0
+        "@xterm/addon-fit": ^0.11.0
+    integrity:
+      publicDigest: sha256:draft-terminal-surface-solid
+  - id: terminal-surface-svelte
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires:
+      - terminal
+    surfaces:
+      - terminal
+    uiFamilies:
+      - svelte
+    source:
+      kind: files
+      path: ../artifacts/terminal-surface-svelte
+      portable: false
+    ownedFiles:
+      - slices/terminal-surface-svelte.txt
+      - src/surfaces/Terminal.svelte
+    removal:
+      ownedFiles:
+        - slices/terminal-surface-svelte.txt
+        - src/surfaces/Terminal.svelte
+    integrity:
+      publicDigest: sha256:draft-terminal-surface-svelte
+  - id: assistant-shell-solid
+    kind: vertical-slice
+    version: 0.0.0-draft
+    readiness: draft
+    requires:
+      - host
+      - ui
+    surfaces:
+      - application-shell
+    uiFamilies:
+      - solid
+    hostFamilies:
+      - go
+    source:
+      kind: files
+      path: ../artifacts/assistant-shell-solid
+      portable: false
+    ownedFiles:
+      - slices/assistant-shell-solid.txt
+      - src/App.solid.tsx
+    removal:
+      ownedFiles:
+        - slices/assistant-shell-solid.txt
+        - src/App.solid.tsx
+    notes: Assistant product shell (Chat | Browse). Owns App.solid.tsx so ui-ui8kit-solid stays runtime-only.
+    integrity:
+      publicDigest: sha256:draft-assistant-shell-solid
   - id: product-template-desktop
     kind: product-template
     version: 0.0.0-draft
@@ -653,7 +1278,6 @@ records:
       module: example.com/app
     integrity:
       publicDigest: sha256:draft-template
-
   - id: wails3-go
     kind: guidance
     version: 0.0.0-draft
@@ -735,3 +1359,83 @@ records:
       path: ../artifacts/guidance-browser-webview2
     ownedFiles:
       - .cursor/rules/browse.mdc
+
+  - id: userstore-local-go
+    kind: adapter
+    version: 0.0.0-draft
+    contract: userstore@0
+    provides:
+      - userstore
+    readiness: draft
+    notes: >-
+      Host userstore extracted from ide/internal/userstore. Prefs/layout/recovery/recent
+      persist under data/state beside the executable. Bridge host.ts prefers UserStoreService
+      when native; session-local.ts remains preview/Vite fallback only.
+    requires:
+      - host
+      - workspace
+    source:
+      kind: local
+      path: ../artifacts/userstore-local-go
+      portable: false
+    ownedFiles:
+      - userstore/surface.txt
+      - compose/userstore.go
+      - internal/userstore/store.go
+      - internal/userstore/store_test.go
+      - internal/userstore/portable_test.go
+    removal:
+      ownedFiles:
+        - userstore/surface.txt
+        - compose/userstore.go
+        - internal/userstore/store.go
+        - internal/userstore/store_test.go
+        - internal/userstore/portable_test.go
+    integrity:
+      publicDigest: sha256:draft-userstore-local-go
+
+  - id: languages-workspace-go
+    kind: adapter
+    version: 0.0.0-draft
+    contract: languages@0
+    provides:
+      - languages
+    readiness: draft
+    notes: >-
+      Extracted from ide/internal/language into internal/language (OUT module path).
+      LanguageService exposes Status/Format/Definition/Hover/Diagnostics/Complete via AttachedRoot.
+      gopls/gofmt and local tsc/prettier/tsquery are used when present; otherwise honest reason strings.
+      Does not claim LSP or Ready without tools on PATH / in workspace.
+    requires:
+      - host
+      - workspace
+    source:
+      kind: local
+      path: ../artifacts/languages-workspace-go
+      portable: false
+    ownedFiles:
+      - languages/surface.txt
+      - compose/languages.go
+      - internal/language/lang.go
+      - internal/language/gopls.go
+      - internal/language/tsquery.go
+      - internal/language/tsquery.mjs
+      - internal/language/lang_test.go
+      - internal/language/gopls_test.go
+      - internal/language/tsquery_test.go
+    removal:
+      ownedFiles:
+        - languages/surface.txt
+        - compose/languages.go
+        - internal/language/lang.go
+        - internal/language/gopls.go
+        - internal/language/tsquery.go
+        - internal/language/tsquery.mjs
+        - internal/language/lang_test.go
+        - internal/language/gopls_test.go
+        - internal/language/tsquery_test.go
+    integrity:
+      publicDigest: sha256:draft-languages-workspace-go
+    conformanceRefs:
+      - language-document-operations
+

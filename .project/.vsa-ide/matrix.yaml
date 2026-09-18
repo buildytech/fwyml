@@ -112,6 +112,43 @@ products:
       - reusable-agent-chat-surface
       - reusable-browser-surface
 
+  ide-solid-full:
+    manifest: manifests/ide-solid-full.yaml
+    uiRuntime: solid
+    capabilities:
+      host: extract
+      ui: ready
+      workspace: extract
+      editor: draft
+      explorer: extract
+      vcs: extract
+      terminal: draft
+      agent: blocked
+      browse: extract
+      delivery: extract
+    slices:
+      workshop-shell-solid: draft
+      explorer-surface-solid: draft
+      editor-surface-solid: draft
+      terminal-surface-solid: draft
+      agent-chat-surface-solid: draft
+      browser-surface-solid: draft
+    absent:
+      - svelte
+      - templ
+    validators:
+      - go-test
+      - go-vet
+      - typescript-check
+      - wails-bindings
+      - wails-build
+      - ui8px
+      - aria
+    blockers:
+      - agent-runtime-cursor-node
+      - windows-portable-delivery
+      - solid-editor-codemirror-parity
+
 sharedArtifacts:
   host-wails3-go:
     status: extract

@@ -1,0 +1,1 @@
+ui8kit-codegen Solid fabric (generated/ui + utils) owned for FW products

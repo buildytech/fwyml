@@ -1,0 +1,26 @@
+{
+  "defaultScope": "layout",
+  "scopes": [
+    {
+      "name": "controls",
+      "files": [
+        "packages/solid/src/kit/**",
+        ".ui8px/scan/packages/solid/src/kit/**",
+        "src/assets/styles/**"
+      ],
+      "spacing": "control"
+    },
+    {
+      "name": "layout",
+      "files": [
+        "src/App.solid.tsx",
+        "src/views/**",
+        "src/components/**",
+        ".ui8px/scan/src/App.solid.tsx.html",
+        ".ui8px/scan/src/views/**",
+        ".ui8px/scan/src/components/**"
+      ],
+      "spacing": "layout"
+    }
+  ]
+}

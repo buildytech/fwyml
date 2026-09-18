@@ -1,2 +1,1 @@
 explorer-surface-svelte
-slices/explorer-surface-svelte.txt

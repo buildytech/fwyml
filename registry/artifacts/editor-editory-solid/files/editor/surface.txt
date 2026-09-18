@@ -1,0 +1,7 @@
+editor-editory-solid
+contract: editor@0
+package: @ui8kit/editory-solid (+ peer editory)
+UI: src/components/widgets/MarkdownEditor.solid.tsx (EditorY visual markdown)
+Go: compose/editor.go — textarea-class document buffer (same editor@0 IPC as editor-textarea-solid)
+Gate: src/lib/markdown-gate.ts — first visual emit must not silently rewrite source
+Selected by ide-solid-full when visual markdown is in product scope.

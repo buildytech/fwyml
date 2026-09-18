@@ -1,0 +1,2 @@
+assistant-shell-solid
+Owns the assistant product application shell (Chat | Browse).
