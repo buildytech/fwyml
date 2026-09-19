@@ -1,1 +1,0 @@
-userstore@0 — durable prefs / recent / recovery / layout beside the executable (data/state).

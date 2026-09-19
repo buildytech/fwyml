@@ -1,4 +1,0 @@
-vcs-git-cli
-contract: vcs@0
-adapter: git CLI Status/Stage/Unstage/Commit/Push/Fetch/Pull/Diff
-source: extracted from ide/packages/go/vcs (+ packages/go/process for Hide)

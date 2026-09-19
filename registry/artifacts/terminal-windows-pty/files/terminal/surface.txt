@@ -1,5 +1,0 @@
-terminal-windows-pty
-contract: terminal@0
-adapter: Windows ConPTY via ide/internal/terminal (+ process Hide helpers)
-note: On !windows Start returns "integrated terminal currently requires Windows".
-      Linux/demo products keep terminal-memory-go selected in the manifest.

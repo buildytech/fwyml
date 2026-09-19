@@ -1,3 +1,0 @@
-explorer-workspace-tree
-contract: explorer@0
-projects a workspace directory listing and open intent

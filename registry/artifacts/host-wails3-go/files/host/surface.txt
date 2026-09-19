@@ -1,7 +1,0 @@
-host-wails3-go
-contract: host@0
-extracted: composition root + HostService lifecycle
-dialogs: PickFolder / PickFile / PickSave / SaveFileAs / OpenPickedFile
-menus: native File/View emit ide:command, ide:save, ide:save-as, ide:settings, ide:view-*
-exit: HostService.Exit → app.Quit
-source: ide packages/go/host/wails + hostapp menus (adapted)

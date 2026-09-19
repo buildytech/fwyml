@@ -1,5 +1,0 @@
-languages-workspace-go
-contract: languages@0
-extracted: ide/internal/language (gopls LookPath + gofmt + workspace-symbol fallback; tsc/prettier/tsquery when present)
-honesty: Ready only when gopls or local TypeScript checker is available; otherwise reason strings stay explicit
-non-obligation: no LSP client process; no project task runner in this adapter

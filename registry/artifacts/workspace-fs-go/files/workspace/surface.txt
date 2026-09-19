@@ -1,5 +1,0 @@
-workspace-fs-go
-contract: workspace@0
-operations: open, list-tree, read/write (revision-checked), create/rename/trash/restore, reveal, search, safe paths
-source: extracted from ide/packages/go/workspace (ownedFiles under internal/workspace)
-binding: Wails WorkspaceService methods; Solid UI may still use preview-session until bindings wired
