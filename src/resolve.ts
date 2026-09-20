@@ -435,7 +435,7 @@ export function toLock(
   ownership["compose/identity.go"] = "fwyml";
   ownership["fw.yaml"] = "fwyml";
   return {
-    schemaVersion: "fw.buildy.tech/lock/v0alpha1",
+    schemaVersion: "urn:fwyml:lock:v0alpha1",
     kind: "Lock",
     product: resolution.product,
     registrySnapshot: snapshot,

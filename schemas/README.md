@@ -1,6 +1,6 @@
 # FW schemas
 
-Canonical, versioned documents for `schemaVersion: fw.buildy.tech/v0alpha1`.
+Canonical, versioned documents for `schemaVersion: urn:fwyml:manifest:v0alpha1`.
 
 `fwyml` may pin copies for offline parse. This directory remains the source
 of truth. None of these schemas name a product vertical.

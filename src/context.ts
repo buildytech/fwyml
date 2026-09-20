@@ -8,7 +8,7 @@ export function contextPack(manifest: Manifest, resolution: Resolution, lock: Lo
     contract: selected.find((record) => record.id === selection.use || (record.provides ?? []).includes(id))?.contract,
   }));
   return {
-    schemaVersion: "fw.buildy.tech/context/v0alpha1",
+    schemaVersion: "urn:fwyml:context:v0alpha1",
     product: manifest.metadata.name,
     selected: selected.map((record) => ({
       id: record.id,

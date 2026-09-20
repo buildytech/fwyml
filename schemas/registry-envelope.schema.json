@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://fw.buildy.tech/schemas/v0alpha1/registry-envelope.schema.json",
+  "$id": "urn:fwyml:schema:registry-envelope:v0alpha1",
   "title": "FW registry envelope",
   "type": "object",
   "additionalProperties": false,
@@ -8,7 +8,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "const": "fw.buildy.tech/registry/v0alpha1"
+      "const": "urn:fwyml:registry:v0alpha1"
     },
     "kind": {
       "type": "string",

@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://fw.buildy.tech/schemas/v0alpha1/harness-result.schema.json",
+  "$id": "urn:fwyml:schema:harness-result:v0alpha1",
   "title": "FW harness result",
   "type": "object",
   "additionalProperties": false,
@@ -8,7 +8,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "const": "fw.buildy.tech/harness/v0alpha1"
+      "const": "urn:fwyml:harness:v0alpha1"
     },
     "kind": {
       "type": "string",

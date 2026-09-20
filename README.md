@@ -1,7 +1,7 @@
 # fwyml
 
-Generic compiler from an [FW](https://github.com/buildytech/fw) product
-manifest plus registry data into a user repository.
+Generic compiler from an FW product manifest plus registry data into a
+user repository.
 
 `fwyml` does not embed adapters, host runtimes, or UI kits. If a capability
 is not selected, it is not downloaded, generated, or linked.

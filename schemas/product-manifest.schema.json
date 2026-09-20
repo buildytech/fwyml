@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://fw.buildy.tech/schemas/v0alpha1/product-manifest.schema.json",
+  "$id": "urn:fwyml:schema:product-manifest:v0alpha1",
   "title": "FW product manifest",
   "type": "object",
   "additionalProperties": false,
@@ -8,7 +8,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "const": "fw.buildy.tech/v0alpha1"
+      "const": "urn:fwyml:manifest:v0alpha1"
     },
     "kind": {
       "type": "string",

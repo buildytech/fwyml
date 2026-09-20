@@ -10,7 +10,7 @@ purpose:
 
 owners:
   fw:
-    repository: buildytech/fw
+    repository: fw
     owns:
       - manifest and registry schemas
       - capability specifications
@@ -22,7 +22,7 @@ owners:
       - runtime dependencies
       - product vertical vocabulary
   fwyml:
-    repository: buildytech/fwyml
+    repository: fwyml
     owns:
       - YAML parsing and validation
       - registry resolution and offline snapshots

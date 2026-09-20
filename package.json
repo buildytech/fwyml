@@ -37,8 +37,7 @@
     "yaml"
   ],
   "author": {
-    "name": "BuildY",
-    "url": "https://github.com/buildytech"
+    "name": "BuildY"
   },
   "license": "Apache-2.0",
   "homepage": "https://github.com/buildytech/fwyml",

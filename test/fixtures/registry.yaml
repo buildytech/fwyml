@@ -1,4 +1,4 @@
-schemaVersion: fw.buildy.tech/registry/v0alpha1
+schemaVersion: urn:fwyml:registry:v0alpha1
 kind: Registry
 metadata:
   id: fixture-registry

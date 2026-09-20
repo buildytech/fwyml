@@ -1,4 +1,4 @@
-schemaVersion: fw.buildy.tech/v0alpha1
+schemaVersion: urn:fwyml:manifest:v0alpha1
 kind: Product
 metadata:
   name: fixture-alpha

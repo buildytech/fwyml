@@ -11,8 +11,8 @@ runtime behavior.
 
 | Owner | May contain | Must not contain |
 | --- | --- | --- |
-| `buildytech/fw` | schemas, port specs, registry source, conformance scenarios | adapter implementations or product verticals |
-| `buildytech/fwyml` | generic YAML resolver, registry snapshot, diagnostics, runner | adapter/runtime dependencies or product special cases |
+| `fw` | schemas, port specs, registry source, conformance scenarios | adapter implementations or product verticals |
+| `fwyml` | generic YAML resolver, registry snapshot, diagnostics, runner | adapter/runtime dependencies or product special cases |
 | source product | concrete stack, business slices, implementation, tests | authority over the framework vocabulary |
 | user product | selected packages, generated glue, product code, lock and CI | unselected capabilities in its dependency graph or artifact |
 

@@ -30,7 +30,7 @@ function materializableSliceFixture() {
 
   const registry = join(dir, "registry.yaml");
   const manifest = join(dir, "fw.yaml");
-  writeFileSync(registry, `schemaVersion: fw.buildy.tech/registry/v0alpha1
+  writeFileSync(registry, `schemaVersion: urn:fwyml:registry:v0alpha1
 kind: Registry
 records:
   - id: surface
@@ -48,7 +48,7 @@ records:
       path: artifact
     ownedFiles: [slices/surface.txt]
 `);
-  writeFileSync(manifest, `schemaVersion: fw.buildy.tech/v0alpha1
+  writeFileSync(manifest, `schemaVersion: urn:fwyml:manifest:v0alpha1
 kind: Product
 metadata:
   name: slice-fixture
@@ -76,7 +76,7 @@ test("three manifests validate against the generic schema", () => {
 test("registry sources require immutable identifiers for their declared kind", () => {
   assert.throws(
     () => assertRegistry({
-      schemaVersion: "fw.buildy.tech/registry/v0alpha1",
+      schemaVersion: "urn:fwyml:registry:v0alpha1",
       kind: "Registry",
       records: [{
         id: "unversioned-package",
@@ -176,7 +176,7 @@ test("constraints and contract ranges use registry compatibility data", () => {
   const dir = mkdtempSync(join(tmpdir(), "fwyml-compatibility-"));
   const registry = join(dir, "registry.yaml");
   const manifest = join(dir, "fw.yaml");
-  writeFileSync(registry, `schemaVersion: fw.buildy.tech/registry/v0alpha1
+  writeFileSync(registry, `schemaVersion: urn:fwyml:registry:v0alpha1
 kind: Registry
 metadata:
   id: compatibility-fixture
@@ -202,7 +202,7 @@ records:
       platforms: [desktop]
     readiness: draft
 `);
-  writeFileSync(manifest, `schemaVersion: fw.buildy.tech/v0alpha1
+  writeFileSync(manifest, `schemaVersion: urn:fwyml:manifest:v0alpha1
 kind: Product
 metadata:
   name: compatibility-fixture
@@ -230,7 +230,7 @@ test("registry ambiguity is a stable JSON diagnostic", () => {
   const dir = mkdtempSync(join(tmpdir(), "fwyml-registry-"));
   const registry = join(dir, "registry.yaml");
   const manifest = join(dir, "fw.yaml");
-  writeFileSync(registry, `schemaVersion: fw.buildy.tech/registry/v0alpha1
+  writeFileSync(registry, `schemaVersion: urn:fwyml:registry:v0alpha1
 kind: Registry
 records:
   - id: repeated
@@ -240,7 +240,7 @@ records:
     kind: capability
     version: "1"
 `);
-  writeFileSync(manifest, `schemaVersion: fw.buildy.tech/v0alpha1
+  writeFileSync(manifest, `schemaVersion: urn:fwyml:manifest:v0alpha1
 kind: Product
 metadata:
   name: registry-fixture
@@ -259,7 +259,7 @@ test("incompatible dependency versions fail resolution before materialization", 
   const dir = mkdtempSync(join(tmpdir(), "fwyml-dependency-"));
   const registry = join(dir, "registry.yaml");
   const manifest = join(dir, "fw.yaml");
-  writeFileSync(registry, `schemaVersion: fw.buildy.tech/registry/v0alpha1
+  writeFileSync(registry, `schemaVersion: urn:fwyml:registry:v0alpha1
 kind: Registry
 records:
   - id: first
@@ -281,7 +281,7 @@ records:
     npm:
       dependencies: { example-shared: "2.0.0" }
 `);
-  writeFileSync(manifest, `schemaVersion: fw.buildy.tech/v0alpha1
+  writeFileSync(manifest, `schemaVersion: urn:fwyml:manifest:v0alpha1
 kind: Product
 metadata:
   name: dependency-fixture
@@ -300,7 +300,7 @@ test("missing selected artifact sources block planning and sync", () => {
   const dir = mkdtempSync(join(tmpdir(), "fwyml-source-"));
   const registry = join(dir, "registry.yaml");
   const manifest = join(dir, "fw.yaml");
-  writeFileSync(registry, `schemaVersion: fw.buildy.tech/registry/v0alpha1
+  writeFileSync(registry, `schemaVersion: urn:fwyml:registry:v0alpha1
 kind: Registry
 records:
   - id: source-adapter
@@ -313,7 +313,7 @@ records:
     ownedFiles:
       - src/source.ts
 `);
-  writeFileSync(manifest, `schemaVersion: fw.buildy.tech/v0alpha1
+  writeFileSync(manifest, `schemaVersion: urn:fwyml:manifest:v0alpha1
 kind: Product
 metadata:
   name: source-fixture
@@ -350,7 +350,7 @@ test("fetch acquires a pinned git artifact before sync", () => {
   const manifest = join(dir, "fw.yaml");
   const out = join(dir, "product");
   writeFileSync(registry, JSON.stringify({
-    schemaVersion: "fw.buildy.tech/registry/v0alpha1",
+    schemaVersion: "urn:fwyml:registry:v0alpha1",
     kind: "Registry",
     records: [{
       id: "source",
@@ -371,7 +371,7 @@ test("fetch acquires a pinned git artifact before sync", () => {
     }],
   }));
   writeFileSync(manifest, JSON.stringify({
-    schemaVersion: "fw.buildy.tech/v0alpha1",
+    schemaVersion: "urn:fwyml:manifest:v0alpha1",
     kind: "Product",
     metadata: { name: "git-fixture" },
     composition: { capabilities: { source: { use: "source-adapter" } } },
