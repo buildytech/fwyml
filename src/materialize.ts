@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, rmSync, readdirSync, rmdirSync, lstatSync } from "node:fs";
+import { dirname, join, resolve, relative } from "node:path";
 import { listFiles, renderYaml, sha256, writeJson, writeText } from "./io.js";
 import type { LockFile, Manifest, Resolution } from "./types.js";
 import { synthesizedOutputs } from "./outputs.js";
@@ -140,6 +140,18 @@ export function materialize(outDir: string, resolution: Resolution, lock: LockFi
       }
     }
     throw error;
+  }
+  // Reconciliation must not leave empty module directories behind. Never
+  // remove a nonempty directory, follow a symlink, or climb outside the root.
+  for (const dest of stale) {
+    let dir = dirname(resolve(outDir, dest));
+    const root = resolve(outDir);
+    while (dir !== root && !relative(root, dir).startsWith("..")) {
+      if (!existsSync(dir)) { dir = dirname(dir); continue; }
+      if (lstatSync(dir).isSymbolicLink() || readdirSync(dir).length !== 0) break;
+      try { rmdirSync(dir); } catch { break; }
+      dir = dirname(dir);
+    }
   }
   return conflicts;
 }

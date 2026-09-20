@@ -89,6 +89,7 @@ test("binary assets round-trip, verify, protect edits and reconcile removal", t 
   writeFileSync(target, bytes);
   ok(f.run("sync"));
   assert.equal(existsSync(target), false);
+  assert.equal(existsSync(join(f.out, "assets")), false);
 });
 
 test("missing selected generator and validator fail CLI commands", t => {
