@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Diagnostic, LockFile, Manifest, Resolution } from "./types.js";
 import { leftoverOwned } from "./materialize.js";
@@ -66,7 +66,7 @@ export function verifyTree(options: {
       const persisted = assertLock(readYaml<LockFile>(persistedPath));
       for (const [dest, digest] of Object.entries(persisted.ownedOutputDigests ?? {})) {
         const path = join(options.outDir, dest);
-        if (existsSync(path) && sha256(readText(path)) !== digest) {
+        if (existsSync(path) && sha256(readFileSync(path)) !== digest) {
           diagnostics.push({
             code: "FWYML_LOCK_MISMATCH",
             severity: "error",
@@ -112,7 +112,7 @@ export function verifyTree(options: {
   }
 
   for (const dest of Object.keys(options.lock.ownership)) {
-    if (!existsSync(join(options.outDir, dest)) && options.lock.ownership[dest] !== "fwyml") {
+    if (!existsSync(join(options.outDir, dest))) {
       diagnostics.push({
         code: "FWYML_LOCK_MISMATCH",
         severity: "error",

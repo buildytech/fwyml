@@ -11,8 +11,9 @@ runtime behavior.
 
 | Owner | May contain | Must not contain |
 | --- | --- | --- |
-| `fw` | schemas, port specs, registry source, conformance scenarios | adapter implementations or product verticals |
-| `fwyml` | generic YAML resolver, registry snapshot, diagnostics, runner | adapter/runtime dependencies or product special cases |
+| `fw` | schemas, port specs, conformance scenarios | adapter implementations, adapter pins or product verticals |
+| `fwyml` | generic YAML resolver, pinned schemas, empty registry envelope, diagnostics, runner | adapter/runtime dependencies or product special cases |
+| external registry | adapter, generator, validator and preset records | compiler or FW contract ownership |
 | source product | concrete stack, business slices, implementation, tests | authority over the framework vocabulary |
 | user product | selected packages, generated glue, product code, lock and CI | unselected capabilities in its dependency graph or artifact |
 
@@ -49,7 +50,7 @@ intake.
 4. Decompose evidence using the classification in `policy.yaml`.
 5. Compare candidates with existing FW records and `fwyml` behavior.
 6. Produce a bounded extraction report before edits.
-7. Update in order: FW contract/registry, registry snapshot, generic CLI
+7. Update in order: FW contract, external registry and pinned schemas, generic CLI
    behavior, tests and fixtures.
 8. Run the affected source validators plus FW and CLI harness checks.
 9. Record source references and contract digests so later drift is detectable.
@@ -71,6 +72,10 @@ intake.
 
 ## Files
 
+Current extraction plan: [SiteStarter conveyor](intakes/site-conveyor/plan.md).
+It separates implemented compiler fixes from product work awaiting plan
+acceptance and from unresolved release gates.
+
 | File | Role |
 | --- | --- |
 | `policy.yaml` | machine-readable operating policy and ownership map |
@@ -78,4 +83,3 @@ intake.
 | `drift.md` | contract drift classes and required CLI diagnostics |
 | `intake.template.yaml` | repeatable evidence record for one source product |
 | `cases/drift.yaml` | executable-spec fixtures for future CLI drift tests |
-

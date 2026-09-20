@@ -92,9 +92,10 @@ Use `intake.template.yaml` as the machine-readable companion.
 ## 5. Apply changes in ownership order
 
 1. Add or revise FW schemas, specs, and conformance.
-2. Add registry records for concrete packages, repositories, validators, and
+2. Add external registry records for concrete packages, repositories, validators, and
    presets.
-3. Produce a versioned registry snapshot with integrity metadata.
+3. Produce an external versioned registry snapshot with integrity metadata;
+   mirror FW schemas into fwyml. Keep the bundled registry envelope empty.
 4. Change `fwyml` only when generic resolution, lock, diagnostics,
    materialization, context emission, or harness execution needs a new
    behavior.
@@ -125,4 +126,3 @@ replace it with an invented substitute.
 Persist source refs and digests, the resulting FW record versions, conformance
 results, and unresolved questions. Do not claim extraction complete while a
 changed public contract lacks a migration or matching harness update.
-

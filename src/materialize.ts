@@ -1,11 +1,13 @@
-import { existsSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { listFiles, readText, renderYaml, sha256, writeJson, writeText } from "./io.js";
+import { listFiles, renderYaml, sha256, writeJson, writeText } from "./io.js";
 import type { LockFile, Manifest, Resolution } from "./types.js";
+import { synthesizedOutputs } from "./outputs.js";
 
 export function renderGoMod(plan: Resolution["plan"], product: string): string {
-  const module = plan.go.module ?? `example.com/${product}`;
-  const lines = [`module ${module}`, "", "go 1.25.0"];
+  const module = plan.go.module;
+  if (!module || !plan.go.version) throw new Error("Go synthesis requires an explicit module and version");
+  const lines = [`module ${module}`, "", `go ${plan.go.version}`];
   const requires = Object.entries(plan.go.require);
   if (requires.length > 0) {
     lines.push("", "require (");
@@ -31,7 +33,7 @@ export function renderPackageJson(plan: Resolution["plan"], product: string): st
       name: product,
       private: true,
       type: "module",
-      scripts: { build: 'node -e "process.exit(0)"', ...plan.scripts },
+      scripts: plan.scripts,
       dependencies: plan.npm,
       devDependencies: plan.npmDev,
     },
@@ -40,34 +42,30 @@ export function renderPackageJson(plan: Resolution["plan"], product: string): st
   )}\n`;
 }
 
-export function renderIdentity(product: string): string {
-  const name = JSON.stringify(product);
-  return `package compose\n\nconst ProductName = ${name}\n`;
-}
-
 export function materialize(outDir: string, resolution: Resolution, lock: LockFile, prior?: LockFile, manifest?: Manifest): string[] {
   const conflicts: string[] = [];
-  const desired = new Map<string, { contents: string; owner: string }>();
+  const desired = new Map<string, { contents: Buffer; owner: string }>();
   for (const file of [...resolution.plan.files, ...resolution.plan.guidance]) {
     if (!existsSync(file.from)) {
       conflicts.push(`missing source ${file.from}`);
       continue;
     }
     const existing = desired.get(file.dest);
-    if (existing && existing.contents !== readText(file.from)) {
+    if (existing && (existing.owner !== file.owner || !existing.contents.equals(readFileSync(file.from)))) {
       conflicts.push(`multiple owners for ${file.dest}`);
       continue;
     }
-    desired.set(file.dest, { contents: readText(file.from), owner: file.owner });
+    desired.set(file.dest, { contents: readFileSync(file.from), owner: file.owner });
   }
 
-  desired.set("package.json", { contents: renderPackageJson(resolution.plan, resolution.product), owner: "fwyml" });
-  if (!desired.has("go.mod")) {
-    desired.set("go.mod", { contents: renderGoMod(resolution.plan, resolution.product), owner: "fwyml" });
+  for (const dest of synthesizedOutputs(resolution.plan)) {
+    const contents = dest === "package.json"
+      ? renderPackageJson(resolution.plan, resolution.product)
+      : renderGoMod(resolution.plan, resolution.product);
+    desired.set(dest, { contents: Buffer.from(contents), owner: "fwyml" });
   }
-  desired.set("compose/identity.go", { contents: renderIdentity(resolution.product), owner: "fwyml" });
   if (manifest) {
-    desired.set("fw.yaml", { contents: renderYaml(manifest), owner: "fwyml" });
+    desired.set("fw.yaml", { contents: Buffer.from(renderYaml(manifest)), owner: "fwyml" });
   }
 
   for (const [dest, output] of desired) {
@@ -80,7 +78,7 @@ export function materialize(outDir: string, resolution: Resolution, lock: LockFi
       continue;
     }
     const expectedDigest = prior.ownedOutputDigests?.[dest];
-    if (!expectedDigest || sha256(readText(target)) !== expectedDigest) {
+    if (!expectedDigest || sha256(readFileSync(target)) !== expectedDigest) {
       conflicts.push(`modified owned target ${dest}`);
     }
   }
@@ -92,7 +90,7 @@ export function materialize(outDir: string, resolution: Resolution, lock: LockFi
       continue;
     }
     const expectedDigest = prior?.ownedOutputDigests?.[dest];
-    if (!expectedDigest || sha256(readText(target)) !== expectedDigest) {
+    if (!expectedDigest || sha256(readFileSync(target)) !== expectedDigest) {
       conflicts.push(`modified removed target ${dest}`);
     }
   }
@@ -105,14 +103,14 @@ export function materialize(outDir: string, resolution: Resolution, lock: LockFi
   lock.ownedOutputDigests = Object.fromEntries(
     [...desired].map(([dest, output]) => [dest, sha256(output.contents)]),
   );
-  const transactionOutputs = new Map<string, string | undefined>();
+  const transactionOutputs = new Map<string, Buffer | undefined>();
   const remember = (dest: string) => {
     if (!transactionOutputs.has(dest)) {
       const target = join(outDir, dest);
-      transactionOutputs.set(dest, existsSync(target) ? readText(target) : undefined);
+      transactionOutputs.set(dest, existsSync(target) ? readFileSync(target) : undefined);
     }
   };
-  const write = (dest: string, contents: string) => {
+  const write = (dest: string, contents: string | Buffer) => {
     remember(dest);
     writeText(join(outDir, dest), contents);
   };

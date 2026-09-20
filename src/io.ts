@@ -25,7 +25,7 @@ export function writeJson(path: string, value: unknown): void {
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
 }
 
-export function writeText(path: string, value: string): void {
+export function writeText(path: string, value: string | Buffer): void {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, value);
 }

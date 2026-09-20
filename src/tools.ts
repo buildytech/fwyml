@@ -12,6 +12,7 @@ export type ToolRun = {
 };
 
 function executableOnPath(name: string): boolean {
+  if (isAbsolute(name)) return existsSync(name);
   const result = spawnSync(process.platform === "win32" ? "where" : "which", [name], {
     encoding: "utf8",
   });
@@ -29,7 +30,7 @@ function run(
   if (!bin || !executableOnPath(bin)) {
     diagnostics.push({
       code: "FWYML_UNVERIFIED_ARTIFACT",
-      severity: "warning",
+      severity: "error",
       message: `tool ${id} skipped; ${bin} is not on PATH`,
       id,
     });
@@ -38,14 +39,14 @@ function run(
   if (bin === "npx" && argv[1] && !existsSync(join(cwd, "node_modules", argv[1]))) {
     diagnostics.push({
       code: "FWYML_UNVERIFIED_ARTIFACT",
-      severity: "warning",
+      severity: "error",
       message: `tool ${id} skipped; package is not installed`,
       id,
     });
     return false;
   }
   const result = spawnSync(bin, argv.slice(1), { cwd, encoding: "utf8" });
-  runs.push({ id, argv, status: result.status, stdout: result.stdout, stderr: result.stderr });
+  runs.push({ id, argv, status: result.status, stdout: result.stdout ?? "", stderr: result.stderr ?? result.error?.message ?? "" });
   if (result.status !== 0) {
     diagnostics.push({
       code: "FWYML_TOOL_FAILED",
@@ -77,12 +78,12 @@ export function runSelectedTools(
         message: `tool ${tool.id} working directory does not exist: ${toolCwd}`,
         id: tool.id,
       });
-      continue;
+      break;
     }
     if (tool.prepare && !run(`${tool.id}:prepare`, tool.prepare, toolCwd, runs, diagnostics)) {
-      continue;
+      break;
     }
-    run(tool.id, tool.argv, toolCwd, runs, diagnostics);
+    if (!run(tool.id, tool.argv, toolCwd, runs, diagnostics)) break;
   }
   return { runs, diagnostics };
 }

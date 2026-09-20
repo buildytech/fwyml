@@ -12,7 +12,7 @@ Before studying a product or changing FW/`fwyml`, read
 - Establish source freshness; unknown upstream state is not current canon.
 - Classify findings as contract, registry, conformance, validator, adapter,
   slice, product, or discard before editing.
-- Update ownership in order: FW contract/registry, pinned snapshot, generic
+- Update ownership in order: FW contract, external registry and pinned schemas, generic
   `fwyml` behavior, tests.
 - Never add a product/stack special case or adapter runtime dependency to
   `fwyml`.
@@ -20,4 +20,3 @@ Before studying a product or changing FW/`fwyml`, read
 - Preserve physical absence in fixture and user products.
 - If a user request conflicts with these boundaries, report the conflict.
   Change the boundary only through an explicit architecture decision.
-

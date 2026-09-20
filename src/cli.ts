@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { contextPack } from "./context.js";
 import { EXIT_FAIL, EXIT_LOCK, EXIT_OK, EXIT_USAGE, EXIT_VERIFY } from "./exit.js";
 import { readYaml, writeYaml } from "./io.js";
@@ -109,6 +109,7 @@ function compile(flags: Flags) {
   const manifest = loadManifest(manifestPath);
   const loaded = loadRegistries({
     manifestSources: manifest.registries,
+    manifestDir: dirname(manifestPath),
     cliRegistry: flags.registry,
   });
   const resolution = resolveGraph(manifest, loaded, sourceCache(flags));
@@ -172,10 +173,10 @@ function main(): number {
     }
 
     if (command === "sync") {
-      const payload = { plan: compiled.resolution.plan, lock: compiled.lock, dryRun: flags.dryRun };
+      const payload = { plan: compiled.resolution.plan, lock: compiled.lock, diagnostics: compiled.resolution.diagnostics, dryRun: flags.dryRun };
       if (flags.dryRun) {
         emit(flags, payload, `dry-run files=${compiled.resolution.plan.files.length}\n`);
-        return EXIT_OK;
+        return hasBlockingResolutionError(compiled.resolution.diagnostics) ? EXIT_FAIL : EXIT_OK;
       }
       if (hasBlockingResolutionError(compiled.resolution.diagnostics)) {
         emit(flags, payload, "sync refused because the composition is invalid\n");
@@ -194,6 +195,11 @@ function main(): number {
     }
 
     if (command === "fetch") {
+      const invalid = compiled.resolution.diagnostics.filter(item => item.code !== "FWYML_SOURCE_MISSING");
+      if (hasBlockingResolutionError(invalid)) {
+        emit(flags, { diagnostics: invalid, ok: false }, "fetch refused because the composition is invalid\n");
+        return EXIT_FAIL;
+      }
       const diagnostics = fetchGitSources(compiled.resolution, sourceCache(flags));
       const errors = diagnostics.filter((item) => item.severity === "error");
       emit(
@@ -205,6 +211,10 @@ function main(): number {
     }
 
     if (command === "generate") {
+      if (hasBlockingResolutionError(compiled.resolution.diagnostics)) {
+        emit(flags, { diagnostics: compiled.resolution.diagnostics, ok: false }, "generate refused because the composition is invalid\n");
+        return EXIT_VERIFY;
+      }
       const lockDiagnostics = verifyPersistedLock(outDir, compiled.lock);
       if (lockDiagnostics.some((item) => item.severity === "error")) {
         emit(flags, { diagnostics: lockDiagnostics, ok: false }, `${lockDiagnostics.map((item) => item.code).join("\n")}\n`);

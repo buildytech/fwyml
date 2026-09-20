@@ -15,7 +15,7 @@ owners:
       - manifest and registry schemas
       - capability specifications
       - conformance scenarios
-      - registry source records
+      - registry record schemas
       - compatibility policy
     forbids:
       - adapter implementation code
@@ -54,13 +54,13 @@ classification:
     destination: fw
     test: observable-and-stack-agnostic
   registry:
-    destination: fw
+    destination: external-registry
     test: describes-a-real-versioned-artifact
   conformance:
     destination: fw
     test: executable-observation-of-a-contract
   validator:
-    destination: fw-registry
+    destination: external-registry
     test: versioned-command-with-machine-readable-result
   cli:
     destination: fwyml
@@ -110,8 +110,8 @@ canonicalEvidence:
 updateOrder:
   - establish-source-freshness
   - write-extraction-report
-  - update-fw-schema-spec-or-registry
-  - regenerate-and-pin-registry-snapshot
+  - update-fw-schema-spec-or-conformance
+  - update-external-registry-and-mirror-schemas
   - update-fwyml-only-for-generic-behavior
   - add-or-update-conformance-and-cli-tests
   - run-source-and-consumer-verification
@@ -124,4 +124,3 @@ stopConditions:
   - contract-change-has-no-conformance-change
   - registry-artifact-has-no-version-or-integrity
   - removal-cannot-prove-physical-absence
-

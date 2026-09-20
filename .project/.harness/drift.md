@@ -1,6 +1,6 @@
 # Contract Drift and CLI Diagnostics
 
-FW registry records must make upstream change observable before a user product
+External registry records must make upstream change observable before a user product
 is silently rebuilt against different behavior.
 
 ## Required provenance
@@ -81,4 +81,3 @@ For every drift class, fixtures must cover:
 
 Human-readable output may evolve. Diagnostic codes and JSON fields are public
 CLI behavior and follow semantic versioning.
-

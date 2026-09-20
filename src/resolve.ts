@@ -4,6 +4,7 @@ import type { Diagnostic, Manifest, MaterializePlan, RegistryRecord, Resolution,
 import { semanticDigest } from "./io.js";
 import { findRecord, type LoadedRegistry } from "./registry.js";
 import { gitArtifactRoot } from "./sources.js";
+import { synthesizedOutputs } from "./outputs.js";
 
 function sourceRef(record: RegistryRecord): string {
   const src = record.source;
@@ -136,9 +137,17 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry, sourceC
   const diagnostics: Diagnostic[] = [];
   const nodes: ResolvedNode[] = [];
   const selected = new Set<string>();
+  const visiting = new Set<string>();
   const providers = new Map<string, string>();
 
   const visit = (id: string, reason: string) => {
+    if (visiting.has(id)) {
+      addDiagnostic(diagnostics, {
+        code: "FWYML_CONTRACT_INCOMPATIBLE", severity: "error", id,
+        message: `dependency cycle includes ${id}`,
+      });
+      return;
+    }
     if (selected.has(id)) {
       return;
     }
@@ -154,7 +163,7 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry, sourceC
       return;
     }
     selected.add(id);
-    nodes.push({ record, reason });
+    visiting.add(id);
     if (record.readiness === "blocked") {
       addDiagnostic(diagnostics, {
         code: "FWYML_UNVERIFIED_ARTIFACT",
@@ -197,16 +206,8 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry, sourceC
     for (const dep of [...(record.dependencies ?? []), ...(record.requires ?? [])]) {
       visit(dep, `dependency:${record.id}`);
     }
-    for (const conflict of record.conflicts ?? []) {
-      if (selected.has(conflict) || manifest.composition.capabilities[conflict]) {
-        addDiagnostic(diagnostics, {
-          code: "FWYML_CONTRACT_INCOMPATIBLE",
-          severity: "error",
-          message: `${record.id} conflicts with ${conflict}`,
-          id: record.id,
-        });
-      }
-    }
+    visiting.delete(id);
+    nodes.push({ record, reason });
   };
 
   for (const [capability, choice] of Object.entries(manifest.composition.capabilities)) {
@@ -265,6 +266,16 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry, sourceC
   }
 
   const terms = selectedTerms(nodes);
+  for (const { record } of nodes) {
+    for (const conflict of record.conflicts ?? []) {
+      if (terms.has(conflict)) {
+        addDiagnostic(diagnostics, {
+          code: "FWYML_CONTRACT_INCOMPATIBLE", severity: "error", id: record.id,
+          message: `${record.id} conflicts with ${conflict}`,
+        });
+      }
+    }
+  }
   for (const required of manifest.constraints?.required ?? []) {
     if (!terms.has(required)) {
       addDiagnostic(diagnostics, {
@@ -290,7 +301,7 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry, sourceC
   const known = [...loaded.records.values()].filter((record) => record.kind === "capability").map((record) => record.id);
   const absent = known.filter((id) => !providers.has(id) && !manifest.composition.capabilities[id]);
 
-  const plan = buildPlan(nodes, loaded.roots, diagnostics, sourceCache);
+  const plan = buildPlan(nodes, loaded, diagnostics, sourceCache);
   return {
     product: manifest.metadata.name,
     nodes,
@@ -300,7 +311,7 @@ export function resolveGraph(manifest: Manifest, loaded: LoadedRegistry, sourceC
   };
 }
 
-function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnostic[], sourceCache?: string): MaterializePlan {
+function buildPlan(nodes: ResolvedNode[], loaded: LoadedRegistry, diagnostics: Diagnostic[], sourceCache?: string): MaterializePlan {
   const files: MaterializePlan["files"] = [];
   const npm: Record<string, string> = {};
   const npmDev: Record<string, string> = {};
@@ -308,6 +319,7 @@ function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnost
   const goRequire: Record<string, string> = {};
   const goReplace: Record<string, string> = {};
   let goModule: string | undefined;
+  let goVersion: string | undefined;
   const tools: MaterializePlan["tools"] = [];
   const guidance: MaterializePlan["guidance"] = [];
   let local = false;
@@ -331,7 +343,8 @@ function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnost
   };
 
   for (const { record } of nodes) {
-    const root = artifactRoot(record, roots, sourceCache);
+    const declaredRoot = loaded.recordRoots.get(record.id);
+    const root = artifactRoot(record, declaredRoot ? [declaredRoot] : [], sourceCache);
     if (record.source?.kind === "local") {
       local = true;
     }
@@ -363,7 +376,15 @@ function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnost
     }
     addDependencies(npm, record.npm?.dependencies ?? {});
     addDependencies(npmDev, record.npm?.devDependencies ?? {});
-    Object.assign(scripts, record.npm?.scripts ?? {});
+    for (const [name, command] of Object.entries(record.npm?.scripts ?? {})) {
+      if (scripts[name] && scripts[name] !== command) {
+        addDiagnostic(diagnostics, {
+          code: "FWYML_DEPENDENCY_CONFLICT", severity: "error", id: `script:${name}`,
+          message: `selected records declare different commands for script ${name}`,
+        });
+      }
+      scripts[name] = command;
+    }
     if (record.source?.kind === "npm" && record.source.package && record.source.ref) {
       addDependencies(
         record.source.install === "devDependency" ? npmDev : npm,
@@ -371,9 +392,27 @@ function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnost
       );
     }
     if (record.kind === "product-template" && record.go?.module) {
+      if (goModule && goModule !== record.go.module) {
+        addDiagnostic(diagnostics, {
+          code: "FWYML_DEPENDENCY_CONFLICT", severity: "error", id: "go.module",
+          message: "selected records declare different Go modules",
+        });
+      }
       goModule = record.go.module;
     } else if (record.go?.module && record.go.require) {
-      goRequire[record.go.module] = record.go.require;
+      addDependencies(goRequire, { [record.go.module]: record.go.require });
+    }
+    if (record.source?.kind === "go-module" && record.source.module && record.source.ref) {
+      addDependencies(goRequire, { [record.source.module]: record.source.ref });
+    }
+    if (record.go?.version) {
+      if (goVersion && goVersion !== record.go.version) {
+        addDiagnostic(diagnostics, {
+          code: "FWYML_DEPENDENCY_CONFLICT", severity: "error", id: "go.version",
+          message: "selected records declare different Go language versions",
+        });
+      }
+      goVersion = record.go.version;
     }
     if (record.go?.replace && root) {
       goReplace[record.go.module ?? record.id] = root;
@@ -393,12 +432,19 @@ function buildPlan(nodes: ResolvedNode[], roots: string[], diagnostics: Diagnost
     }
   }
 
+  const ownsGoMod = files.some((file) => file.dest === "go.mod");
+  if (!ownsGoMod && (goModule || goVersion || Object.keys(goRequire).length || Object.keys(goReplace).length) && (!goModule || !goVersion)) {
+    addDiagnostic(diagnostics, {
+      code: "FWYML_CONTRACT_INCOMPATIBLE", severity: "error", id: "go.mod",
+      message: "Go synthesis requires an explicit product module and go.version, or an owned go.mod",
+    });
+  }
   return {
     files,
     npm,
     npmDev,
     scripts,
-    go: { module: goModule, require: goRequire, replace: goReplace },
+    go: { module: goModule, version: goVersion, require: goRequire, replace: goReplace },
     tools,
     guidance,
     local,
@@ -428,11 +474,9 @@ export function toLock(
   for (const file of [...resolution.plan.files, ...resolution.plan.guidance]) {
     ownership[file.dest] = file.owner;
   }
-  ownership["package.json"] = "fwyml";
-  if (!ownership["go.mod"]) {
-    ownership["go.mod"] = "fwyml";
+  for (const dest of synthesizedOutputs(resolution.plan)) {
+    ownership[dest] = "fwyml";
   }
-  ownership["compose/identity.go"] = "fwyml";
   ownership["fw.yaml"] = "fwyml";
   return {
     schemaVersion: "urn:fwyml:lock:v0alpha1",

@@ -9,6 +9,7 @@ export type LoadedRegistry = {
   snapshotId: string;
   snapshotDigest: string;
   roots: string[];
+  recordRoots: Map<string, string>;
 };
 
 export class RegistryError extends Error {
@@ -38,6 +39,7 @@ function loadEnvelope(
   documentDigests: string[],
   seenIds: Set<string>,
   seenPaths: Set<string>,
+  recordRoots: Map<string, string>,
 ): string | undefined {
   if (!existsSync(path)) {
     throw new RegistryError("FWYML_REGISTRY_INVALID", `registry not found: ${path}`);
@@ -61,13 +63,14 @@ function loadEnvelope(
     }
     seenIds.add(record.id);
     into.set(record.id, record);
+    recordRoots.set(record.id, dir);
   }
   for (const pattern of envelope.include ?? []) {
     const included = resolve(dir, pattern);
     if (!existsSync(included)) {
       throw new RegistryError("FWYML_REGISTRY_INVALID", `included registry not found: ${included}`);
     }
-    loadEnvelope(included, into, roots, documentDigests, seenIds, seenPaths);
+    loadEnvelope(included, into, roots, documentDigests, seenIds, seenPaths, recordRoots);
   }
   return envelope.metadata?.id;
 }
@@ -75,18 +78,20 @@ function loadEnvelope(
 export function loadRegistries(options: {
   manifestSources?: { id: string; source: string }[];
   cliRegistry?: string;
+  manifestDir?: string;
   env?: Record<string, string>;
 }): LoadedRegistry {
   const env = { ...process.env, ...(options.env ?? {}) } as Record<string, string>;
   const records = new Map<string, RegistryRecord>();
   const roots: string[] = [];
+  const recordRoots = new Map<string, string>();
   const bundled = join(packageRoot(), "registry", "snapshot", "index.yaml");
   const sources: string[] = [];
   if (existsSync(bundled)) {
     sources.push(bundled);
   }
   for (const item of options.manifestSources ?? []) {
-    const cwd = process.cwd();
+    const cwd = options.manifestDir ?? process.cwd();
     const resolved = resolvePath(cwd, item.source, env);
     if (resolved) {
       sources.push(resolved);
@@ -98,7 +103,7 @@ export function loadRegistries(options: {
   let snapshotId = "bundled";
   const documentDigests: string[] = [];
   for (const source of [...new Set(sources)]) {
-    const label = loadEnvelope(source, records, roots, documentDigests, new Set<string>(), new Set<string>());
+    const label = loadEnvelope(source, records, roots, documentDigests, new Set<string>(), new Set<string>(), recordRoots);
     snapshotId = label ?? source;
   }
   return {
@@ -106,6 +111,7 @@ export function loadRegistries(options: {
     snapshotId,
     snapshotDigest: semanticDigest(documentDigests.sort()),
     roots,
+    recordRoots,
   };
 }
 

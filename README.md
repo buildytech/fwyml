@@ -56,6 +56,27 @@ replays that lock; it does not run external validators when replay fails.
 When a selection is removed, `sync` deletes only unchanged outputs that the
 previous lock owned. A changed output is reported as a conflict.
 
+## Explicit outputs and required tools
+
+`sync` emits no implicit Go identity, Go module, npm manifest, or no-op build.
+An owned package manifest is copied byte-for-byte. Otherwise selected npm
+dependencies/scripts request package.json synthesis. Go synthesis requires a
+selected product-template with `go.module` and an explicit `go.version`, or
+the registry must supply an owned go.mod. Binary assets retain their bytes.
+
+Manifest registry paths resolve relative to the manifest; record source paths
+resolve relative to the registry document declaring that record. Dependency
+tools run before their dependents. Cycles and conflicting declarations fail
+planning. Missing selected tools or failed preparation fail generate/verify.
+Tools must already be installed; `fetch` currently acquires Git sources only.
+Package installation and a general offline toolchain bootstrap are not yet
+implemented. Commands launched by a registry can themselves access the network;
+the runner is not a network sandbox.
+
+Migration from earlier alpha locks: review `sync --dry-run` and run `sync`.
+Unchanged implicit outputs are removed under the previous ownership digests;
+modified outputs conflict. Old Go synthesis records must add `go.version`.
+
 ## Exit codes
 
 | Code | Meaning |
