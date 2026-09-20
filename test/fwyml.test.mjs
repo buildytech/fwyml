@@ -73,20 +73,6 @@ test("three manifests validate against the generic schema", () => {
   }
 });
 
-test("bundled capability records reference a published port specification", () => {
-  const records = parse(readFileSync(join(root, "registry", "snapshot", "records.yaml"), "utf8"));
-  for (const record of records.records ?? []) {
-    if (record.kind !== "capability" || !record.contract) {
-      continue;
-    }
-    assert.equal(
-      existsSync(join(root, "registry", "snapshot", "specs", `${record.contract}.yaml`)),
-      true,
-      `${record.id} requires ${record.contract}`,
-    );
-  }
-});
-
 test("registry sources require immutable identifiers for their declared kind", () => {
   assert.throws(
     () => assertRegistry({
@@ -103,13 +89,11 @@ test("registry sources require immutable identifiers for their declared kind", (
   );
 });
 
-test("bundled snapshot ships port records without adapter artifacts", () => {
+test("bundled snapshot is an empty envelope without ports or artifacts", () => {
   assert.equal(existsSync(join(root, "registry", "artifacts")), false);
+  assert.equal(existsSync(join(root, "registry", "snapshot", "specs")), false);
   const records = parse(readFileSync(join(root, "registry", "snapshot", "records.yaml"), "utf8"));
-  for (const record of records.records ?? []) {
-    assert.equal(record.kind, "capability", record.id);
-    assert.equal(record.source, undefined, record.id);
-  }
+  assert.deepEqual(records.records ?? [], []);
 });
 
 test("unextracted selections retain absence data and block materialization", () => {

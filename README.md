@@ -35,8 +35,8 @@ npx fwyml validate --manifest fw.yaml
 `up` and `pack` wait until a generated product passes build conformance.
 
 Registry precedence: `--registry`, then manifest `registries`, then the
-bundled port snapshot. Adapter pins and product catalogs live in an
-external registry; this CLI does not vendor them. Network refresh is
+bundled empty snapshot. Port specs, adapter pins, and product catalogs
+live in FW and an external registry; this CLI does not vendor them. Network refresh is
 never implicit. `fetch` is the only source-acquisition command; it
 checks out an exact Git commit into `.fwyml/sources` by default.
 For source trees whose layout differs from the materialized product,

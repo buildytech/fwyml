@@ -4,13 +4,13 @@ kind: registry-drift-cases
 cases:
   - id: unchanged
     selected:
-      contract: editor@1.2
+      contract: surface@1.2
       sourceRef: package@1.4.0
       publicDigest: sha256:contract-a
       artifactDigest: sha256:artifact-a
-      conformanceRef: editor@1.2/package@1.4.0
+      conformanceRef: surface@1.2/package@1.4.0
     discovered:
-      contract: editor@1.2
+      contract: surface@1.2
       sourceRef: package@1.4.0
       publicDigest: sha256:contract-a
       artifactDigest: sha256:artifact-a
@@ -20,13 +20,13 @@ cases:
 
   - id: implementation-rewritten
     selected:
-      contract: editor@1.2
+      contract: surface@1.2
       sourceRef: package@1.4.0
       publicDigest: sha256:contract-a
       artifactDigest: sha256:artifact-a
-      conformanceRef: editor@1.2/package@1.4.0
+      conformanceRef: surface@1.2/package@1.4.0
     discovered:
-      contract: editor@1.2
+      contract: surface@1.2
       sourceRef: package@1.5.0
       publicDigest: sha256:contract-a
       artifactDigest: sha256:artifact-b
@@ -38,12 +38,12 @@ cases:
 
   - id: compatible-contract-extension
     selected:
-      contract: editor@1.2
+      contract: surface@1.2
       adapterRange: ">=1.1 <2"
     discovered:
-      contract: editor@1.3
+      contract: surface@1.3
       publicDigest: sha256:contract-b
-      conformanceRef: editor@1.3/package@1.5.0
+      conformanceRef: surface@1.3/package@1.5.0
     expected:
       codes:
         - FWYML_UPDATE_AVAILABLE
@@ -52,10 +52,10 @@ cases:
 
   - id: breaking-contract-change
     selected:
-      contract: editor@1.2
+      contract: surface@1.2
       adapterRange: ">=1.1 <2"
     discovered:
-      contract: editor@2.0
+      contract: surface@2.0
       publicDigest: sha256:contract-c
     expected:
       codes:
@@ -65,10 +65,10 @@ cases:
 
   - id: changed-unverified-artifact
     selected:
-      contract: editor@1.2
+      contract: surface@1.2
       sourceRef: package@1.4.0
     discovered:
-      contract: editor@1.2
+      contract: surface@1.2
       sourceRef: package@1.5.0
       artifactDigest: ""
       conformanceRef: ""
@@ -85,9 +85,9 @@ cases:
     materializedPackages:
       - ui-adapter
       - host-adapter
-      - editor-adapter
+      - extra-adapter
     packageCapabilities:
-      editor-adapter: editor
+      extra-adapter: extra
     expected:
       codes:
         - FWYML_ABSENCE_VIOLATION
