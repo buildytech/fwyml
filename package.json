@@ -18,8 +18,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "tsc && node --test test/*.test.mjs",
-    "stage:vsa": "node scripts/stage-vsa.mjs"
+    "test": "tsc && node --test test/*.test.mjs"
   },
   "repository": {
     "type": "git",

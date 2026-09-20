@@ -4,7 +4,7 @@ kind: product-evidence-intake
 source:
   id: vsa-fixture-products
   repository: local-fixtures
-  localPath: .project/.vsa-ide
+  localPath: test/fixtures
   branch: ""
   commit: ""
   packageVersions: {}
@@ -35,7 +35,7 @@ evidence:
     - .project/.harness/workflow.md
     - .project/.harness/drift.md
   manifests:
-    - .project/.vsa-ide/manifests
+    - test/fixtures
   contracts:
     - schemas/product-manifest.schema.json
     - schemas/registry-envelope.schema.json
@@ -88,9 +88,9 @@ verification:
     - bun run test
     - bun run build
   fixtureProducts:
-    - workshop-templ
-    - workshop-svelte-agent
-    - assistant-solid-browser
+    - fixture-alpha
+    - fixture-beta
+    - fixture-gamma
   physicalAbsenceChecks:
     - dropped selected output is deleted only when unchanged
     - modified formerly owned output causes a conflict

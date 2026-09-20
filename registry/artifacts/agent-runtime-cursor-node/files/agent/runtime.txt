@@ -1,3 +1,0 @@
-agent-runtime-cursor-node
-readiness: blocked
-the event contract exists; the Node sidecar does not

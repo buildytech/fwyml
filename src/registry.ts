@@ -95,9 +95,6 @@ export function loadRegistries(options: {
   if (options.cliRegistry) {
     sources.push(resolvePath(process.cwd(), options.cliRegistry, env));
   }
-  if (env.FWYML_VSA_REGISTRY) {
-    sources.push(resolve(env.FWYML_VSA_REGISTRY));
-  }
   let snapshotId = "bundled";
   const documentDigests: string[] = [];
   for (const source of [...new Set(sources)]) {

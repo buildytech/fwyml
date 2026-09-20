@@ -1,2 +1,0 @@
-workshop-shell-solid
-slices/workshop-shell-solid.txt

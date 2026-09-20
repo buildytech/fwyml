@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,8 +12,7 @@ import { runSelectedTools } from "../dist/tools.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const cli = join(root, "dist", "cli.js");
-const stageVSA = join(root, "scripts", "stage-vsa.mjs");
-const manifests = join(root, ".project", ".vsa-ide", "manifests");
+const fixtures = join(root, "test", "fixtures");
 
 function run(args, env = {}) {
   return spawnSync(process.execPath, [cli, ...args], {
@@ -21,21 +20,6 @@ function run(args, env = {}) {
     cwd: root,
     env: { ...process.env, ...env },
   });
-}
-
-function isolatedSnapshotRegistry() {
-  const dir = mkdtempSync(join(tmpdir(), "fwyml-snapshot-"));
-  const registryDir = join(dir, "registry");
-  cpSync(join(root, "registry", "snapshot"), registryDir, { recursive: true });
-  const registry = join(registryDir, "records.yaml");
-  const snapshot = parse(readFileSync(registry, "utf8"));
-  for (const record of snapshot.records ?? []) {
-    if (record.ownedFiles?.length) {
-      record.source = { ...record.source, path: join(dir, "unextracted", record.id) };
-    }
-  }
-  writeFileSync(registry, JSON.stringify(snapshot));
-  return { dir, registry };
 }
 
 function materializableSliceFixture() {
@@ -83,8 +67,8 @@ test("version works without adapters", () => {
 });
 
 test("three manifests validate against the generic schema", () => {
-  for (const name of ["workshop-templ.yaml", "workshop-svelte-agent.yaml", "assistant-solid-browser.yaml"]) {
-    const result = run(["validate", "--manifest", join(manifests, name)]);
+  for (const name of ["alpha.yaml", "beta.yaml", "gamma.yaml"]) {
+    const result = run(["validate", "--manifest", join(fixtures, name)]);
     assert.equal(result.status, 0, `${name} ${result.stdout}${result.stderr}`);
   }
 });
@@ -119,51 +103,52 @@ test("registry sources require immutable identifiers for their declared kind", (
   );
 });
 
-test("VSA staging copies registry metadata without fabricating artifacts", () => {
-  const dir = mkdtempSync(join(tmpdir(), "fwyml-stage-"));
-  const result = spawnSync(process.execPath, [stageVSA], {
-    cwd: root,
-    encoding: "utf8",
-    env: { ...process.env, FWYML_VSA_STAGING: dir },
-  });
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(existsSync(join(dir, "registry", "index.yaml")), true);
-  assert.equal(existsSync(join(dir, "artifacts")), false);
-  rmSync(dir, { recursive: true, force: true });
+test("bundled snapshot ships port records without adapter artifacts", () => {
+  assert.equal(existsSync(join(root, "registry", "artifacts")), false);
+  const records = parse(readFileSync(join(root, "registry", "snapshot", "records.yaml"), "utf8"));
+  for (const record of records.records ?? []) {
+    assert.equal(record.kind, "capability", record.id);
+    assert.equal(record.source, undefined, record.id);
+  }
 });
 
-test("unextracted VSA selections retain absence data and block materialization", () => {
+test("unextracted selections retain absence data and block materialization", () => {
   const cases = [
     {
-      file: "workshop-templ.yaml",
-      absent: ["agent"],
-      present: ["browse", "workspace"],
+      file: "alpha.yaml",
+      absent: ["extra"],
+      present: ["surface"],
     },
     {
-      file: "workshop-svelte-agent.yaml",
-      absent: ["browse"],
-      present: ["agent", "editor"],
+      file: "beta.yaml",
+      absent: ["surface"],
+      present: ["extra"],
     },
     {
-      file: "assistant-solid-browser.yaml",
-      absent: ["workspace", "editor", "explorer", "vcs"],
-      present: ["browse", "agent"],
+      file: "gamma.yaml",
+      absent: [],
+      present: ["surface", "extra"],
     },
   ];
   for (const item of cases) {
-    const snapshot = isolatedSnapshotRegistry();
-    const resolved = run(["--json", "resolve", "--manifest", join(manifests, item.file), "--registry", snapshot.registry]);
+    const resolved = run([
+      "--json",
+      "resolve",
+      "--manifest",
+      join(fixtures, item.file),
+      "--registry",
+      join(fixtures, "registry.yaml"),
+    ]);
     assert.equal(resolved.status, 1, resolved.stderr);
     const body = JSON.parse(resolved.stdout);
     for (const id of item.absent) {
       assert.ok(body.resolution.absent.includes(id), `${item.file} missing absent ${id}`);
-      assert.ok(!body.resolution.nodes.some((node) => node.record.provides?.includes(id) && id !== "ui"));
+      assert.ok(!body.resolution.nodes.some((node) => node.record.provides?.includes(id)));
     }
     for (const id of item.present) {
       assert.ok(body.resolution.nodes.some((node) => (node.record.provides ?? []).includes(id)), `${item.file} missing ${id}`);
     }
     assert.ok(body.resolution.diagnostics.some((row) => row.code === "FWYML_SOURCE_MISSING"));
-    rmSync(snapshot.dir, { recursive: true, force: true });
   }
 });
 
@@ -189,6 +174,7 @@ test("resolver source names no product ids", () => {
     "svelte-check",
     "solid-js",
     "ui8kit",
+    "FWYML_VSA",
   ]) {
     assert.equal(src.includes(token), false, token);
   }

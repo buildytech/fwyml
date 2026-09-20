@@ -1,0 +1,10 @@
+schemaVersion: fw.buildy.tech/v0alpha1
+kind: Product
+metadata:
+  name: fixture-gamma
+composition:
+  capabilities:
+    surface:
+      use: surface-adapter
+    extra:
+      use: extra-adapter

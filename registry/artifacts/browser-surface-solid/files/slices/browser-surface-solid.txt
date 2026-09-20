@@ -1,2 +1,0 @@
-browser-surface-solid
-slices/browser-surface-solid.txt

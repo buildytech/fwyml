@@ -1,4 +1,0 @@
-agent@0 closed event set
-message.delta thinking.delta thinking.completed tool.started tool.completed
-run.completed run.failed run.aborted
-unknown native events are dropped

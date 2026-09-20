@@ -1,0 +1,30 @@
+schemaVersion: fw.buildy.tech/registry/v0alpha1
+kind: Registry
+metadata:
+  id: fixture-registry
+  status: draft
+records:
+  - id: surface
+    kind: capability
+    version: "1"
+  - id: extra
+    kind: capability
+    version: "1"
+  - id: surface-adapter
+    kind: adapter
+    version: "1"
+    provides: [surface]
+    source:
+      kind: files
+      path: missing-surface
+    ownedFiles:
+      - src/surface.ts
+  - id: extra-adapter
+    kind: adapter
+    version: "1"
+    provides: [extra]
+    source:
+      kind: files
+      path: missing-extra
+    ownedFiles:
+      - src/extra.ts

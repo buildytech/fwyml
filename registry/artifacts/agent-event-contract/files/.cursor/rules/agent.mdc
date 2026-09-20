@@ -1,4 +1,0 @@
-# Agent events
-
-The event set is closed. Presentation code imports the selected contract
-package only. A vendor SDK stays behind the runtime adapter.

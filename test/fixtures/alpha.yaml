@@ -1,0 +1,11 @@
+schemaVersion: fw.buildy.tech/v0alpha1
+kind: Product
+metadata:
+  name: fixture-alpha
+composition:
+  capabilities:
+    surface:
+      use: surface-adapter
+constraints:
+  forbidden:
+    - extra

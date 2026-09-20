@@ -1,4 +1,0 @@
-host-wails3-go
-contract: host@0
-source: https://github.com/buildy-ui/ide.git@fda6faf8d6493aa1bd82d4083b1de8a565da32a3
-extracted: composition root and lifecycle service; product identity stays in the manifest

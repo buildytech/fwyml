@@ -1,4 +1,0 @@
-editor-editory-svelte
-contract: editor@0
-package: @ui8kit/editory-svelte
-preserves document value, selection, and lifetime

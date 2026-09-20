@@ -1,4 +1,0 @@
-editor-templ
-contract: editor@0
-acceptance: textarea document buffer only
-non-obligation: no CodeMirror, no visual Markdown

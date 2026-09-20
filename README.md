@@ -29,14 +29,16 @@ npx fwyml validate --manifest fw.yaml
 | `fwyml sync` | write owned files, lock, and dependency manifests |
 | `fwyml verify` | run lock, absence, and provenance checks |
 | `fwyml verify --strict` | fail blocked or unverified records |
+| `fwyml generate` | run selected generate-phase tools against a matching lock |
 | `fwyml context` | emit a grounded pack; no model call |
 
 `up` and `pack` wait until a generated product passes build conformance.
 
 Registry precedence: `--registry`, then manifest `registries`, then the
-bundled snapshot. `FWYML_VSA_REGISTRY` may point at a local draft index.
-Network refresh is never implicit. `fetch` is the only source-acquisition
-command; it checks out an exact Git commit into `.fwyml/sources` by default.
+bundled port snapshot. Adapter pins and product catalogs live in an
+external registry; this CLI does not vendor them. Network refresh is
+never implicit. `fetch` is the only source-acquisition command; it
+checks out an exact Git commit into `.fwyml/sources` by default.
 For source trees whose layout differs from the materialized product,
 `source.exports` maps each owned destination to its repository-relative file.
 

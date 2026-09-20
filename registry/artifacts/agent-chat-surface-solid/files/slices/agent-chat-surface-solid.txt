@@ -1,2 +1,0 @@
-agent-chat-surface-solid
-slices/agent-chat-surface-solid.txt

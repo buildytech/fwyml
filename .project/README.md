@@ -7,6 +7,5 @@ The durable product-intake and framework-extraction procedure lives in
 rules, validators, and packages become FW registry records, conformance
 scenarios, and generic `fwyml` behavior.
 
-The first concrete vertical proof is
-[`.vsa-ide/`](.vsa-ide/README.md): three physically distinct Wails 3 user
-products materialized from one FW registry model and one generic CLI.
+Product catalogs and adapter pins live in an external registry. This
+repository does not vendor them.
